@@ -1,0 +1,4 @@
+rootProject.name = 'guerrilla'
+include ':gradle-plugin', ':runtime'
+project(':gradle-plugin').name = 'guerrilla-gradle'
+project(':runtime').name = 'guerrilla-runtime'

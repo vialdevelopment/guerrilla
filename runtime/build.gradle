@@ -1,0 +1,55 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:6.0.0'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+repositories {
+    maven { url 'https://jitpack.io' }
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.ow2.asm:asm:9.0'
+    compile 'org.ow2.asm:asm-analysis:9.0'
+    compile 'org.ow2.asm:asm-commons:9.0'
+    compile 'org.ow2.asm:asm-tree:9.0'
+    compile 'org.ow2.asm:asm-util:9.0'
+
+    compile 'com.github.Grundlefleck:ASM-NonClassloadingExtensions:asm-nonclassloadingextensions-1.0-rc2'
+    compile 'com.esotericsoftware:reflectasm:1.11.9'
+    compile 'com.github.Mojang:LegacyLauncher:e4c0914eb7'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+shadowJar {
+    dependencies {
+        include(dependency('org.ow2.asm:asm'))
+        include(dependency('org.ow2.asm:asm-analysis'))
+        include(dependency('org.ow2.asm:asm-commons'))
+        include(dependency('org.ow2.asm:asm-tree'))
+        include(dependency('org.ow2.asm:asm-util'))
+        include(dependency('com.esotericsoftware:reflectasm'))
+        include(dependency('com.github.Grundlefleck:ASM-NonClassloadingExtensions'))
+    }
+    relocate 'org.objectweb.asm', 'io.github.vialdevelopment.guerrilla.shaded.asm'
+    relocate 'org.mutabilitydetector.asm', 'io.github.vialdevelopment.guerrilla.shaded.mutuabilitydetector.asm'
+    classifier = ''
+}
+
+build.dependsOn(shadowJar)
+
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            publication -> project.shadow.component(publication)
+        }
+    }
+}
