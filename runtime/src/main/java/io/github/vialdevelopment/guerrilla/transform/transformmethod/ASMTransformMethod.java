@@ -18,16 +18,13 @@ public class ASMTransformMethod implements ITransformMethod {
     public void insert(ClassNode classBeingTransformed, ClassNode transformerClass, MethodNode methodBeingTransformed, MethodNode transformerMethod, ASMAnnotation... asmAnnotation) {
         System.out.println("Invoking method " + asmAnnotation[0].get("methodName"));
         // invoke on the correct method
-        for (MethodNode refMethod : transformerClass.methods) {
-            if (refMethod.name.equals(transformerClass.name)) {
-                try {
-                    // object is null because static
-                    MethodAccess.get(Class.forName(transformerClass.name.replace('/', '.'))).invoke(null, transformerMethod.name, methodBeingTransformed, OBF);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
+        try {
+            // object is null because static
+            MethodAccess.get(Class.forName(transformerClass.name.replace('/', '.'))).invoke(null, transformerMethod.name, methodBeingTransformed, OBF);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
+
     }
 
 }
