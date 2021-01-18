@@ -91,7 +91,8 @@ public class FixTransformerClasses extends DefaultTask {
         String className = (String) transformClassAnnotation.get("className");
         if (transformClassAnnotation.get("obfClassName") == null) {
             String remapped = mapper.remapClassName(className);
-            transformClassAnnotation.put("obfClassName", remapped == null ? className : remapped);
+            if (remapped == null) return className;
+            transformClassAnnotation.put("obfClassName", remapped);
             transformClassAnnotation.write();
         }
         return className;

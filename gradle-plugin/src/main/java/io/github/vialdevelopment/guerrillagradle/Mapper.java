@@ -103,7 +103,7 @@ public class Mapper {
         String remapped = unObfToObfMappings.get(className.replace('.', '/'));
         if (remapped == null) {
             handleUnmapped(remap.CLASS, className);
-            return className;
+            return null;
         }
         return remapped;
     }
@@ -127,7 +127,7 @@ public class Mapper {
 
         if (found == null) {
             handleUnmapped(remap.METHOD_NAME, className + "/" + methodName + " " + methodArgs);
-            return className + " " + methodName + " " + methodArgs;
+            return null;
         }
 
         String[] wholeSplit = found.split(" ");
@@ -153,7 +153,7 @@ public class Mapper {
 
         if (found == null) {
             handleUnmapped(remap.FIELD_ACCESS, className + "/" + fieldName);
-            return className + "/" + fieldName;
+            return null;
         }
 
         return found;
@@ -177,7 +177,7 @@ public class Mapper {
 
         if (found == null) {
             handleUnmapped(remap.METHOD_ACCESS, className + "/" + methodName + " " + methodSignature);
-            return className + "/" + methodName + " " + methodSignature;
+            return null;
         }
 
         return found;
