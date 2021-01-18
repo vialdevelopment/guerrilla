@@ -1,4 +1,4 @@
-package io.github.vialdevelopment.guerrilla.transform.insert;
+package io.github.vialdevelopment.guerrilla.transform.transformmethod.insert;
 
 import io.github.vialdevelopment.guerrilla.annotation.insert.At;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;

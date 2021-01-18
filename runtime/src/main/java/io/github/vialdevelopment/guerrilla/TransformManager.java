@@ -56,12 +56,9 @@ public class TransformManager {
             }
         }
 
-        transforms.add(new TransformAddInterfaces());
-        transforms.add(new TransformsFieldAccess());
-        transforms.add(new TransformTransformMethodOnly());
-        transforms.add(new TransformMethodNoAnnotation());
-        transforms.add(new TransformTransformMethodAndInsert());
-        transforms.add(new TransformTransformMethodAndOverwrite());
+        transforms.add(new TransformAddInterfacesEx());
+        transforms.add(new TransformsFieldAccessEx());
+        transforms.add(new TransformMethodEx());
 
         HAS_INIT = true;
     }

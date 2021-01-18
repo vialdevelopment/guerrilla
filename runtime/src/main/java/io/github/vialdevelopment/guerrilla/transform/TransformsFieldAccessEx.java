@@ -17,7 +17,7 @@ import static io.github.vialdevelopment.guerrilla.TransformManager.OBF;
  *  - Find field to TransformFieldAccess
  *  - Change the access
  */
-public class TransformsFieldAccess implements ITransform {
+public class TransformsFieldAccessEx implements ITransform {
 
     @Override
     public void transform(ClassNode classBeingTransformed, ClassNode transformerNode) {

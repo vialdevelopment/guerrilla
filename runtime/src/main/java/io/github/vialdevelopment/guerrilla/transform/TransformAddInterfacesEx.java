@@ -8,7 +8,7 @@ import org.objectweb.asm.tree.ClassNode;
  * Internally:
  *  - Copy transformer node's interfaces to class being transformed's interfaces list
  */
-public class TransformAddInterfaces implements ITransform {
+public class TransformAddInterfacesEx implements ITransform {
 
     @Override
     public void transform(ClassNode classBeingTransformed, ClassNode transformerNode) {

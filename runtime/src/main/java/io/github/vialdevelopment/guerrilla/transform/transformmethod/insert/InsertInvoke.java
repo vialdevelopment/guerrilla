@@ -1,11 +1,11 @@
-package io.github.vialdevelopment.guerrilla.transform.insert;
+package io.github.vialdevelopment.guerrilla.transform.transformmethod.insert;
 
 import io.github.vialdevelopment.guerrilla.ASMFactory;
 import io.github.vialdevelopment.guerrilla.ASMUtil;
 import io.github.vialdevelopment.guerrilla.Pattern;
 import io.github.vialdevelopment.guerrilla.annotation.insert.At;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
-import io.github.vialdevelopment.guerrilla.transform.TransformTransformMethodAndInsert;
+import io.github.vialdevelopment.guerrilla.transform.transformmethod.InsertTransformMethod;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
@@ -28,7 +28,7 @@ import static org.objectweb.asm.Opcodes.*;
  *  - Add the hook method node to the class being transformed
  *  - "Hook" appended to name
  *  - Access set to public static
- *  - Add argument to hook method for reference to "this" // FIXME another note, don't do this on static
+ *  - Add argument to hook method for reference to "this"
  *  - VarInsnNodes referencing parameters are decremented
  *  - VarInsnNodes previously referencing "this" are now at -1, change these to reference the last parameter
  *  - Replace the call with a static call to the hook, inserting instructions to load the method parameters and the "this" object onto a stack before
@@ -130,7 +130,7 @@ public class InsertInvoke implements IInsert {
 
             // we're inserting the instructions somewhere around the invoke
             // instructions have been prepared for insertion
-            TransformTransformMethodAndInsert.prepareMethodForInsertion(methodBeingTransformed, transformerMethod,
+            ASMUtil.prepareMethodForInsertion(methodBeingTransformed, transformerMethod,
                     insertAnnotation.get("returnType") != null ?
                             ASMFactory.EReturnTypes.valueOf(((String[]) insertAnnotation.get("returnType"))[1]) :
                             ASMFactory.EReturnTypes.RETURN);
