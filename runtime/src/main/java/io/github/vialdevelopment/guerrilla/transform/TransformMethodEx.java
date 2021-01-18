@@ -44,7 +44,7 @@ public class TransformMethodEx implements ITransform {
             }
 
             if (transformMethodAnnotation == null && insertAnnotation == null && overwriteAnnotation == null && ignoreInlineAnnotation == null) {
-                noAnnotationTransform.insert(classBeingTransformed, transformerNode, null, transformerMethod, null);
+                noAnnotationTransform.insert(classBeingTransformed, transformerNode, null, transformerMethod, (ASMAnnotation) null);
             } else if (transformerMethod != null && insertAnnotation != null && overwriteAnnotation == null && ignoreInlineAnnotation == null) {
                 insertMethodTransform.insert(classBeingTransformed, transformerNode, methodBeingTransformed, transformerMethod, transformMethodAnnotation, insertAnnotation);
             } else if (transformerMethod != null && insertAnnotation == null && overwriteAnnotation != null && ignoreInlineAnnotation == null) {
