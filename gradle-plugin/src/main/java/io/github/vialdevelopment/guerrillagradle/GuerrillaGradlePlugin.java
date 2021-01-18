@@ -2,6 +2,7 @@ package io.github.vialdevelopment.guerrillagradle;
 
 import io.github.vialdevelopment.guerrillagradle.tasks.FixAllClasses;
 import io.github.vialdevelopment.guerrillagradle.tasks.FixTransformerClasses;
+import io.github.vialdevelopment.guerrillagradle.tasks.InitMapper;
 import io.github.vialdevelopment.guerrillagradle.tasks.SetupMinecraftJar;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -44,8 +45,14 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.forgeVersion = extension.forgeVersion;
         });
 
+        TaskProvider<InitMapper> initMapperTaskProvider = project.getTasks().register("initMapper", InitMapper.class);
+        initMapperTaskProvider.configure(task -> {
+            task.mapper = mapper;
+            task.mcpVersion = extension.mcpVersion;
+        });
+
         javaCompile.dependsOn(setupMinecraftJarTaskProvider);
-        javaCompile.doLast(task -> mapper.init(project, extension.mcpVersion));
+        javaCompile.finalizedBy(initMapperTaskProvider);
         javaCompile.finalizedBy(fixTransformerClassesTaskProvider);
         javaCompile.finalizedBy(fixAllClassesTaskProvider);
 

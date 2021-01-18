@@ -16,7 +16,6 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
