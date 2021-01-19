@@ -39,8 +39,9 @@ shadowJar {
         include(dependency('com.esotericsoftware:reflectasm'))
         include(dependency('com.github.Grundlefleck:ASM-NonClassloadingExtensions'))
     }
-    relocate 'org.objectweb.asm', 'io.github.vialdevelopment.guerrilla.shaded.asm'
-    relocate 'org.mutabilitydetector.asm', 'io.github.vialdevelopment.guerrilla.shaded.mutuabilitydetector.asm'
+    relocate 'org.objectweb.asm', 'io.github.vialdevelopment.guerrilla.shaded.org.objectweb.asm'
+    relocate 'org.mutabilitydetector.asm', 'io.github.vialdevelopment.guerrilla.shaded.org.mutuabilitydetector.asm'
+    relocate 'com.esotericsoftware', 'io.github.vialdevelopment.guerrilla.shaded.com.esotericsoftware'
     classifier = ''
 }
 
