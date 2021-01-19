@@ -1,9 +1,6 @@
 package io.github.vialdevelopment.guerrillagradle;
 
-import io.github.vialdevelopment.guerrillagradle.tasks.FixAllClasses;
-import io.github.vialdevelopment.guerrillagradle.tasks.FixTransformerClasses;
-import io.github.vialdevelopment.guerrillagradle.tasks.InitMapper;
-import io.github.vialdevelopment.guerrillagradle.tasks.SetupMinecraftJar;
+import io.github.vialdevelopment.guerrillagradle.tasks.*;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskProvider;
@@ -23,6 +20,19 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
 
         JavaCompile javaCompile = (JavaCompile) project.getTasks().getByName("compileJava");
 
+        TaskProvider<SetupMinecraftJar> setupMinecraftJarTaskProvider = project.getTasks().register("setupMinecraftJar", SetupMinecraftJar.class);
+        setupMinecraftJarTaskProvider.configure(task -> {
+            task.mapper = mapper;
+            task.mcpVersion = extension.mcpVersion;
+            task.forgeVersion = extension.forgeVersion;
+        });
+
+        TaskProvider<InitMapper> initMapperTaskProvider = project.getTasks().register("initMapper", InitMapper.class);
+        initMapperTaskProvider.configure(task -> {
+            task.mapper = mapper;
+            task.mcpVersion = extension.mcpVersion;
+        });
+
         TaskProvider<FixTransformerClasses> fixTransformerClassesTaskProvider = project.getTasks().register("fixTransformers", FixTransformerClasses.class);
         fixTransformerClassesTaskProvider.configure(task -> {
             task.buildClassesDirectory = javaCompile.getDestinationDir();
@@ -38,23 +48,18 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.alreadyUsedTransformersHolder = alreadyUsedTransformersHolder;
         });
 
-        TaskProvider<SetupMinecraftJar> setupMinecraftJarTaskProvider = project.getTasks().register("setupMinecraftJar", SetupMinecraftJar.class);
-        setupMinecraftJarTaskProvider.configure(task -> {
-            task.mapper = mapper;
-            task.mcpVersion = extension.mcpVersion;
-            task.forgeVersion = extension.forgeVersion;
-        });
-
-        TaskProvider<InitMapper> initMapperTaskProvider = project.getTasks().register("initMapper", InitMapper.class);
-        initMapperTaskProvider.configure(task -> {
-            task.mapper = mapper;
-            task.mcpVersion = extension.mcpVersion;
+        TaskProvider<AddClassesToTransformExclude> addClassesToTransformExcludeTaskProvider = project.getTasks().register("AddRuntimeTransformExclude", AddClassesToTransformExclude.class);
+        addClassesToTransformExcludeTaskProvider.configure(task -> {
+            task.buildClassesDirectory = javaCompile.getDestinationDir();
+            task.resourcesDir = new File(project.getBuildDir() + "/resources");
+            task.transformers = extension.transformers;
         });
 
         javaCompile.dependsOn(setupMinecraftJarTaskProvider);
         javaCompile.finalizedBy(initMapperTaskProvider);
         javaCompile.finalizedBy(fixTransformerClassesTaskProvider);
         javaCompile.finalizedBy(fixAllClassesTaskProvider);
+        javaCompile.finalizedBy(addClassesToTransformExcludeTaskProvider);
 
         project.afterEvaluate(action -> {
             setupMinecraftJarTaskProvider.get().process();

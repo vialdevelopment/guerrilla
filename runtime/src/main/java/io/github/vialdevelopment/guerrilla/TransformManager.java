@@ -15,10 +15,8 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.URL;
+import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -38,22 +36,62 @@ public class TransformManager {
 
     private static final Map<String, String> transformMap = new HashMap<>();
 
-    public static Map<String, byte[]> transformerClassesCache = new HashMap<>();
+    private static final Map<String, byte[]> untransformedClassesBytesCache = new HashMap<>();
 
     private static final List<ITransform> transforms = new ArrayList<>();
 
+    private static final List<String> transformExclude = new ArrayList<>();
+
     public static void init() {
-        InputStream toPublicAbuseInStream = TransformManager.class.getClassLoader().getResourceAsStream("make-public.txt");
-        if (toPublicAbuseInStream != null) {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(toPublicAbuseInStream));
-                String current;
-                while ((current = reader.readLine()) != null) {
-                    transformMap.put(current.replace('/', '.'), "");
+        try {
+            // read in all make-public.txt files
+            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("make-public.txt");
+            while (enumeration.hasMoreElements()) {
+                URL currentURL = enumeration.nextElement();
+                try {
+                    InputStream inputStream = currentURL.openStream();
+                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                    BufferedReader reader = new BufferedReader(inputStreamReader);
+                    String current;
+
+                    while ((current = reader.readLine()) != null) {
+                        transformMap.put(current.replace('/', '.'), "");
+                    }
+
+                    reader.close();
+                    inputStreamReader.close();
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // read in all transform-exclude.txt files
+        try {
+            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("transform-exclude.txt");
+            while (enumeration.hasMoreElements()) {
+                URL currentURL = enumeration.nextElement();
+                try {
+                    InputStream inputStream = currentURL.openStream();
+                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                    BufferedReader reader = new BufferedReader(inputStreamReader);
+                    String current;
+
+                    while ((current = reader.readLine()) != null) {
+                        transformExclude.add(current.replace('/', '.'));
+                    }
+
+                    reader.close();
+                    inputStreamReader.close();
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         transforms.add(new TransformAddInterfacesEx());
@@ -112,12 +150,11 @@ public class TransformManager {
      * @return the byte array of the transformed class
      */
     public static byte[] transformClass(String name, byte[] basicClass) {
-        // FIXME remove specifics to canopy and make configurable somehow, maybe file in resources
-        if (name.startsWith("io.github.vialdevelopment.canopy.asm.transformers")) {
-            transformerClassesCache.put(name, basicClass);
+        // if we're excluding this class we probably use it elsewhere here and so want it cached
+        if (transformExclude.contains(name)) {
+            untransformedClassesBytesCache.put(name, basicClass);
+            return basicClass;
         }
-
-        if (name.startsWith("net.minecraftforge") || name.startsWith("io.github.vialdevelopment")) return basicClass;
 
         final String transform = getTransformMap().get(name);
 
@@ -137,7 +174,7 @@ public class TransformManager {
             if (!transform.equals("")) {
 
                 // get transformer class ASM
-                ClassReader transformerReader = new ClassReader(transformerClassesCache.get(transform));
+                ClassReader transformerReader = new ClassReader(untransformedClassesBytesCache.get(transform));
                 transformerReader.accept(transformerNode, 0);
 
                 for (ITransform iTransform : transforms) {
