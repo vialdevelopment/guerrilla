@@ -165,12 +165,30 @@ public class Pattern {
     }
 
     /**
+     * Inserts this pattern before all instructions matching
+     * @param instructions insn list to operate on
+     * @param toInsertBefore instruction this pattern will be placing before
+     */
+    public void insertBeforeAll(InsnList instructions, AbstractInsnNode toInsertBefore) {
+        new Pattern(toInsertBefore).match(instructions).forEach(matched -> this.clone().insertBefore(instructions, matched.get(0)));
+    }
+
+    /**
      * Inserts this pattern after the offset instruction
      * @param instructions insn list to operate on
      * @param offset instruction this pattern will be placed after
      */
     public void insertAfter(InsnList instructions, AbstractInsnNode offset) {
         instructions.insert(offset, getInsnList());
+    }
+
+    /**
+     * Inserts this pattern after all instructions matching
+     * @param instructions insn list to operate on
+     * @param toInsertAfter instruction this pattern will be placing after
+     */
+    public void insertAfterAll(InsnList instructions, AbstractInsnNode toInsertAfter) {
+        new Pattern(toInsertAfter).match(instructions).forEach(matched -> this.clone().insertAfter(instructions, matched.get(0)));
     }
 
     /**
