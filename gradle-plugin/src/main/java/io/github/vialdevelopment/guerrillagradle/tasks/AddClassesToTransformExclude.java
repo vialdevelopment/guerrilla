@@ -73,7 +73,7 @@ public class AddClassesToTransformExclude extends DefaultTask {
             // now we write the classes to receive the public and non-final abuse to a file
             // to be done at runtime
             // FIXME this shouldn't be always in the main submodule
-            File excludeTransformFile = new File(resourcesDir + "/main/transform-exclude.txt");
+            File excludeTransformFile = new File(resourcesDir + "/main/guerrilla-transform-exclude.txt");
             excludeTransformFile.getParentFile().mkdirs();
             FileWriter fileWriter = new FileWriter(excludeTransformFile);
             for (String s : toExclude) {

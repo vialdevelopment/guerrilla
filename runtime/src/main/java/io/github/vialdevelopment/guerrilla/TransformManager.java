@@ -44,8 +44,8 @@ public class TransformManager {
 
     public static void init() {
         try {
-            // read in all make-public.txt files
-            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("make-public.txt");
+            // read in all guerrilla-make-public.txt files
+            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("guerrilla-make-public.txt");
             while (enumeration.hasMoreElements()) {
                 URL currentURL = enumeration.nextElement();
                 try {
@@ -68,9 +68,9 @@ public class TransformManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // read in all transform-exclude.txt files
+        // read in all guerrilla-transform-exclude.txt files
         try {
-            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("transform-exclude.txt");
+            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("guerrilla-transform-exclude.txt");
             while (enumeration.hasMoreElements()) {
                 URL currentURL = enumeration.nextElement();
                 try {

@@ -75,7 +75,7 @@ public class FixAllClasses extends DefaultTask {
             // now we write the classes to receive the public and non-final abuse to a file
             // to be done at runtime
             // FIXME this shouldn't be always in the main submodule
-            String makePublicTXTPath = resourcesDir + "/main/make-public.txt";
+            String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public.txt";
             File makePublicTXTFile = new File(makePublicTXTPath);
             makePublicTXTFile.getParentFile().mkdirs();
             FileWriter fileWriter = new FileWriter(makePublicTXTFile);
