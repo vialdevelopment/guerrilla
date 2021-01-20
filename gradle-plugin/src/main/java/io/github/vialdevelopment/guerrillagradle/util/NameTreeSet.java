@@ -47,14 +47,17 @@ public class NameTreeSet implements Serializable {
     public NameTreeSet add(String superName, String name) {
         NameTreeSet preExistingSuperNameTreeSet = contains(superName);
         NameTreeSet preExistingNameTreeSet = contains(name);
-
-        if (preExistingNameTreeSet != null) return preExistingNameTreeSet;
-
+        if (preExistingNameTreeSet != null && preExistingSuperNameTreeSet != null) return preExistingNameTreeSet;
         if (preExistingSuperNameTreeSet != null) {
             return preExistingSuperNameTreeSet.add(name);
         }
-        System.out.println(superName);
-        System.out.println(contains(superName));
+        if (preExistingNameTreeSet != null) {
+            preExistingNameTreeSet.superTree.values.remove(preExistingNameTreeSet);
+            NameTreeSet newSuperNameTreeSet = add(superName);
+            newSuperNameTreeSet.values.add(preExistingNameTreeSet);
+            preExistingNameTreeSet.superTree = newSuperNameTreeSet;
+            return preExistingNameTreeSet;
+        }
         return add(superName).add(name);
     }
 
