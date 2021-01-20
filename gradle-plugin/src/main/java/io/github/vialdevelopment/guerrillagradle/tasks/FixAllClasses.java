@@ -47,7 +47,7 @@ public class FixAllClasses extends DefaultTask {
                         ClassVisitor classRemapper = new ClassRemapper(classNode, new Remapper() {
                             @Override
                             public String map(String internalName) {
-                                if (MiscUtil.isPublicMinecraft(internalName)) {
+                                if (MiscUtil.isPublicName(internalName)) {
                                     String normalizedName = internalName.substring(0, internalName.length() - 6);
                                     publicsUsed.add(normalizedName);
                                     return normalizedName;

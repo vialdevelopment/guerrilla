@@ -80,6 +80,7 @@ public class Mapper {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        System.out.println(unObfToObfMappings);
     }
 
     private enum remap {

@@ -10,11 +10,11 @@ public class MiscUtil {
      * @param internalName class name
      * @return is reference
      */
-    public static boolean isPublicMinecraft(String internalName) {
+    public static boolean isPublicName(String internalName) {
         return internalName.startsWith("net/minecraft/") && internalName.endsWith("PUBLIC");
     }
 
-    public static boolean isValidToPublicName(String internalName) {
+    public static boolean isValidPublicName(String internalName) {
         return internalName.startsWith("net/minecraft/");
     }
 
@@ -23,12 +23,12 @@ public class MiscUtil {
      * @param internalName class name
      * @return minecraft-public name
      */
-    public static String toPublicMinecraft(String internalName) {
-        return isValidToPublicName(internalName) ? internalName + "PUBLIC" : internalName;
+    public static String toPublicName(String internalName) {
+        return isValidPublicName(internalName) ? internalName + "PUBLIC" : internalName;
     }
 
-    public static String toNormalMinecraft(String internalName) {
-        return isValidToPublicName(internalName) ? internalName.substring(0, internalName.length()-6) : internalName;
+    public static String toNormalName(String internalName) {
+        return isValidPublicName(internalName) ? internalName.substring(0, internalName.length()-6) : internalName;
     }
 
 }

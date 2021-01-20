@@ -45,27 +45,17 @@ public class NameTreeSet implements Serializable {
 
     /** adds the super and name to this tree node */
     public NameTreeSet add(String superName, String name) {
-        NameTreeSet superTree = contains(superName);
-        NameTreeSet nameTree = contains(name);
-        if (superTree == null || superTree.name.equals("")) {
-            superTree = add(superName);
-            if (nameTree == null) {
-                nameTree = add(name);
-                nameTree.superTree = superTree;
-            } else {
-                superTree = add(superName);
-                nameTree.superTree = superTree;
-                superTree.values.add(nameTree);
-            }
-        } else {
-            if (nameTree != null) {
-                superTree.values.add(nameTree);
-                nameTree.superTree = superTree;
-            } else {
-                superTree.add(name);
-            }
+        NameTreeSet preExistingSuperNameTreeSet = contains(superName);
+        NameTreeSet preExistingNameTreeSet = contains(name);
+
+        if (preExistingNameTreeSet != null) return preExistingNameTreeSet;
+
+        if (preExistingSuperNameTreeSet != null) {
+            return preExistingSuperNameTreeSet.add(name);
         }
-        return nameTree;
+        System.out.println(superName);
+        System.out.println(contains(superName));
+        return add(superName).add(name);
     }
 
     /** recursively gets the full name of this tree node, ie ;superTreeName;thisName; */

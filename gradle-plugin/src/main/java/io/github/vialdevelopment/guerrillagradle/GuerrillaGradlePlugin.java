@@ -20,11 +20,11 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
 
         JavaCompile javaCompile = (JavaCompile) project.getTasks().getByName("compileJava");
 
-        TaskProvider<SetupMinecraftJar> setupMinecraftJarTaskProvider = project.getTasks().register("setupMinecraftJar", SetupMinecraftJar.class);
-        setupMinecraftJarTaskProvider.configure(task -> {
+        TaskProvider<CreatePublicJar> createPublicJarTaskProvider = project.getTasks().register("createPublicJar", CreatePublicJar.class);
+        createPublicJarTaskProvider.configure(task -> {
+            task.javaCompile = javaCompile;
             task.mapper = mapper;
-            task.mcpVersion = extension.mcpVersion;
-            task.forgeVersion = extension.forgeVersion;
+            task.makePublics = extension.makePublic;
         });
 
         TaskProvider<InitMapper> initMapperTaskProvider = project.getTasks().register("initMapper", InitMapper.class);
@@ -55,19 +55,19 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.transformers = extension.transformers;
         });
 
-        javaCompile.dependsOn(setupMinecraftJarTaskProvider);
+        javaCompile.dependsOn(createPublicJarTaskProvider);
         javaCompile.finalizedBy(initMapperTaskProvider);
         javaCompile.finalizedBy(fixTransformerClassesTaskProvider);
         javaCompile.finalizedBy(fixAllClassesTaskProvider);
         javaCompile.finalizedBy(addClassesToTransformExcludeTaskProvider);
 
         project.afterEvaluate(action -> {
-            setupMinecraftJarTaskProvider.get().process();
+            // setupMinecraftJarTaskProvider.get().process();
             project.getRepositories().flatDir(repo -> {
                 repo.setName("guerrilla");
-                repo.dirs(project.getGradle().getGradleUserHomeDir().getPath() + "/caches/minecraft/guerrilla/");
+                repo.dirs(project.getBuildDir() + "/tmp/guerrilla");
             });
-            project.getDependencies().add("compile", ":io/github/vialdevelopment/minecraft-public/" + extension.mcpVersion + extension.forgeVersion + "/minecraft-public");
+            project.getDependencies().add("compile", ":public");
         });
 
         project.getTasks().getByName("clean").doLast(action -> {
