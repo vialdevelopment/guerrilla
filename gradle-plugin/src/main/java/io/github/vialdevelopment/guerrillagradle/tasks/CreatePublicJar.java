@@ -2,7 +2,6 @@ package io.github.vialdevelopment.guerrillagradle.tasks;
 
 import io.github.vialdevelopment.guerrillagradle.Mapper;
 import io.github.vialdevelopment.guerrillagradle.util.MiscUtil;
-import io.github.vialdevelopment.guerrillagradle.util.NameTreeSet;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -16,9 +15,7 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -31,7 +28,7 @@ public class CreatePublicJar extends DefaultTask {
     public JavaCompile javaCompile;
     public Mapper mapper;
     public List<String> makePublics;
-    public NameTreeSet inheritanceTree = new NameTreeSet("", null);
+    public Map<String, String> inheritanceMap = new HashMap<>();
 
     @TaskAction
     public void process() {
@@ -53,14 +50,11 @@ public class CreatePublicJar extends DefaultTask {
             } else {
                 FileInputStream fileInputStream = new FileInputStream(inheritanceTreeFile);
                 ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-                inheritanceTree = (NameTreeSet) objectInputStream.readObject();
+                inheritanceMap = (Map<String, String>) objectInputStream.readObject();
                 objectInputStream.close();
                 fileInputStream.close();
             }
-            mapper.inheritanceTree = inheritanceTree;
-            inheritanceTree.forAll(tree -> {
-                System.out.println(tree.getName(new ArrayList<>()));
-            });
+            mapper.inheritanceTree = inheritanceMap;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -108,7 +102,7 @@ public class CreatePublicJar extends DefaultTask {
                         }
                         if (!makePublic) continue;
 
-                        inheritanceTree.add(MiscUtil.toNormalName(classNode.superName), MiscUtil.toNormalName(classNode.name));
+                        inheritanceMap.put(MiscUtil.toNormalName(classNode.name), MiscUtil.toNormalName(classNode.superName));
 
                         // make everything public
                         for (MethodNode method : classNode.methods) {
@@ -152,7 +146,7 @@ public class CreatePublicJar extends DefaultTask {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(inheritanceTreeFile);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(inheritanceTree);
+            objectOutputStream.writeObject(inheritanceMap);
             objectOutputStream.close();
             fileOutputStream.close();
         } catch (IOException e) {

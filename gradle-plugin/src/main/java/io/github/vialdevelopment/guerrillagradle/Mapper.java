@@ -1,6 +1,5 @@
 package io.github.vialdevelopment.guerrillagradle;
 
-import io.github.vialdevelopment.guerrillagradle.util.NameTreeSet;
 import org.gradle.api.Project;
 
 import java.io.File;
@@ -21,8 +20,8 @@ public class Mapper {
     public Path mcpFolder;
     /** A hashmap containing the mappings from unObf -> obf */
     public Map<String, String> unObfToObfMappings = new HashMap<>();
-    /** A NameTreeSet of the inheritance structure of the minecraft classes */
-    public NameTreeSet inheritanceTree;
+    /** A hashmap of the inheritance structure of the minecraft classes */
+    public Map<String, String> inheritanceTree;
 
     /**
      * Initializes the mapper to be ready to query
@@ -80,7 +79,6 @@ public class Mapper {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        System.out.println(unObfToObfMappings);
     }
 
     private enum remap {
@@ -120,10 +118,10 @@ public class Mapper {
         className = className.replace('.', '/');
         String found = unObfToObfMappings.get(className + "/" + methodName + " " + methodArgs);
 
-        NameTreeSet tree = inheritanceTree.contains(className);
-        while (found == null && tree != null) {
-            found = unObfToObfMappings.get(tree.name + "/" + methodName + " " + methodArgs);
-            tree = tree.superTree;
+        String name = className;
+        while (found == null && name != null) {
+            found = unObfToObfMappings.get(name + "/" + methodName + " " + methodArgs);
+            name = inheritanceTree.get(name);
         }
 
         if (found == null) {
@@ -146,10 +144,10 @@ public class Mapper {
         className = className.replace('.', '/');
         String found = unObfToObfMappings.get(className + "/" + fieldName);
 
-        NameTreeSet tree = inheritanceTree.contains(className);
-        while (found == null && tree != null) {
-            found = unObfToObfMappings.get(tree.name + "/" + fieldName);
-            tree = tree.superTree;
+        String name = className;
+        while (found == null && name != null) {
+            found = unObfToObfMappings.get(name + "/" + fieldName);
+            name = inheritanceTree.get(name);
         }
 
         if (found == null) {
@@ -170,10 +168,10 @@ public class Mapper {
     public String remapMethodAccess(String className, String methodName, String methodSignature) {
         String found = unObfToObfMappings.get(className + "/" + methodName + " " + methodSignature);
 
-        NameTreeSet tree = inheritanceTree.contains(className);
-        while (found == null && tree != null) {
-            found = unObfToObfMappings.get(tree.name + "/" + methodName + " " + methodSignature);
-            tree = tree.superTree;
+        String name = className;
+        while (found == null && name != null) {
+            found = unObfToObfMappings.get(name + "/" + methodName + " " + methodSignature);
+            name = inheritanceTree.get(name);
         }
 
         if (found == null) {
