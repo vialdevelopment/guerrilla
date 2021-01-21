@@ -34,7 +34,7 @@ public class TransformManager {
 
     public static boolean ASM_DEBUG = Boolean.parseBoolean(System.getProperty("guerrilla.asmdebug", "false"));
 
-    private static final Map<String, String> transformMap = new HashMap<>();
+    private static final Map<String, List<String>> transformMap = new HashMap<>();
 
     private static final Map<String, byte[]> untransformedClassesBytesCache = new HashMap<>();
 
@@ -55,7 +55,9 @@ public class TransformManager {
                     String current;
 
                     while ((current = reader.readLine()) != null) {
-                        transformMap.put(current.replace('/', '.'), "");
+                        List<String> names = new ArrayList<>();
+                        names.add("");
+                        transformMap.put(current.replace('/', '.'), names);
                     }
 
                     reader.close();
@@ -114,7 +116,13 @@ public class TransformManager {
 
         final String className = OBF ? transformClassAnnotation.obfClassName() : transformClassAnnotation.className();
 
-        getTransformMap().put(className, transform.getName());
+        if (getTransformMap().containsKey(className)) {
+            getTransformMap().get(className).add(transform.getName());
+        } else {
+            List<String> names = new ArrayList<>();
+            names.add(transform.getName());
+            getTransformMap().put(className, names);
+        }
     }
 
     /**
@@ -156,9 +164,9 @@ public class TransformManager {
             return basicClass;
         }
 
-        final String transform = getTransformMap().get(name);
+        final List<String> transformers = getTransformMap().get(name);
 
-        if (transform == null) return basicClass;
+        if (transformers == null) return basicClass;
 
         System.out.println("Transforming " + name);
 
@@ -166,19 +174,20 @@ public class TransformManager {
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNodeBeingTransformed, 0);
 
-        ClassNode transformerNode = new ClassNode();
-
         File dumpFile = new File("Guerrilla" + File.separator + "asm/" + ASMUtil.toExternalName(name) + ".class");
 
         try {
-            if (!transform.equals("")) {
+            for (String transform : transformers) {
+                if (!transform.equals("")) {
 
-                // get transformer class ASM
-                ClassReader transformerReader = new ClassReader(untransformedClassesBytesCache.get(transform));
-                transformerReader.accept(transformerNode, 0);
+                    // get transformer class ASM
+                    ClassNode transformerNode = new ClassNode();
+                    ClassReader transformerReader = new ClassReader(untransformedClassesBytesCache.get(transform));
+                    transformerReader.accept(transformerNode, 0);
 
-                for (ITransform iTransform : transforms) {
-                    iTransform.transform(classNodeBeingTransformed, transformerNode);
+                    for (ITransform iTransform : transforms) {
+                        iTransform.transform(classNodeBeingTransformed, transformerNode);
+                    }
                 }
             }
 
@@ -196,15 +205,19 @@ public class TransformManager {
             }
 
             // only need to fix references if there was a transformer
-            if (transformerNode.name != null) {
-                String transformerNodeExternalName = ASMUtil.toExternalName(transformerNode.name);
+            List<String> externalTransformersNames = new ArrayList<>();
+            for (String transformer : transformers) {
+                if (transformer.equals("")) continue;
+                externalTransformersNames.add(ASMUtil.toExternalName(transformer));
+            }
+            if (externalTransformersNames.size() != 0) {
                 String classBeingTransformedExternalName = ASMUtil.toExternalName(name);
                 // remap all references from the transformer to class being transformed
                 ClassNode temp = new ClassNode();
                 ClassVisitor classRemapper = new ClassRemapper(temp, new Remapper() {
                     @Override
                     public String map(String internalName) {
-                        if (internalName.equals(transformerNodeExternalName)) {
+                        if (externalTransformersNames.contains(internalName)) {
                             return classBeingTransformedExternalName;
                         }
                         return internalName;
@@ -335,7 +348,7 @@ public class TransformManager {
         return false;
     }
 
-    public static Map<String, String> getTransformMap() {
+    public static Map<String, List<String>> getTransformMap() {
         return transformMap;
     }
 }
