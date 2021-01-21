@@ -69,17 +69,6 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             });
             project.getDependencies().add("compile", ":public");
         });
-
-        project.getTasks().getByName("clean").doLast(action -> {
-            try {
-                if (extension.mcpVersion != null && extension.forgeVersion != null) {
-                    new File(project.getGradle().getGradleUserHomeDir().getPath() + "/caches/minecraft/guerrilla/io/github/vialdevelopment/minecraft-public/" + extension.mcpVersion + extension.forgeVersion + "/minecraft-public.tree").delete();
-                    new File(project.getGradle().getGradleUserHomeDir().getPath() + "/caches/minecraft/guerrilla/io/github/vialdevelopment/minecraft-public/" + extension.mcpVersion + extension.forgeVersion + "/minecraft-public.jar").delete();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
     }
 
     public static class AlreadyUsedTransformersHolder {

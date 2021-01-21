@@ -7,7 +7,6 @@ public class GuerrillaGradlePluginExtension {
 
     public String transformers = "";
     public String mcpVersion = "";
-    public String forgeVersion = "";
     public List<String> makePublic = new ArrayList<>();
 
 }
