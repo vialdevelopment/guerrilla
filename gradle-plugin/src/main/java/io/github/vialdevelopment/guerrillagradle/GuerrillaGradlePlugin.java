@@ -46,6 +46,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.buildClassesDirectory = javaCompile.getDestinationDir();
             task.resourcesDir = new File(project.getBuildDir() + "/resources");
             task.alreadyUsedTransformersHolder = alreadyUsedTransformersHolder;
+            task.makePublics = extension.makePublic;
         });
 
         TaskProvider<AddClassesToTransformExclude> addClassesToTransformExcludeTaskProvider = project.getTasks().register("AddRuntimeTransformExclude", AddClassesToTransformExclude.class);

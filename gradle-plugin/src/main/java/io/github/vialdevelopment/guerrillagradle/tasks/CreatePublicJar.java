@@ -79,12 +79,13 @@ public class CreatePublicJar extends DefaultTask {
                 while (jarEntryEnumeration.hasMoreElements()) {
                     JarEntry jarEntry = jarEntryEnumeration.nextElement();
 
-                    if (jarEntry.getName().endsWith(".class")) {
+                    if (jarEntry.getName().endsWith(".class") && !jarEntry.getName().equals("module-info.class")) {
                         ClassNode classNode = new ClassNode();
                         ClassReader classReader = new ClassReader(read(jarFile.getInputStream(jarEntry), jarEntry.getSize()));
 
                         final boolean[] transform = {false};
-                        classReader.accept(new ClassVisitor(Opcodes.ASM9) {
+
+                        classReader.accept(new ClassVisitor(ASM5) {
                             @Override
                             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                                 for (String aPublic : makePublics) {
@@ -97,28 +98,18 @@ public class CreatePublicJar extends DefaultTask {
                         }, 0);
 
                         if (!transform[0]) continue;
+
                         // remap to new naming convention
                         ClassVisitor classRemapper = new ClassRemapper(classNode, new Remapper() {
                             @Override
                             public String map(String internalName) {
-                                return MiscUtil.toPublicName(internalName);
+                                return MiscUtil.toPublicName(internalName, makePublics);
                             }
                         });
+
                         classReader.accept(classRemapper, 0);
 
-                        boolean makePublic = false;
-                        {
-                            String externalName = MiscUtil.toNormalName(classNode.name);
-                            for (String aPublic : makePublics) {
-                                if (externalName.matches(aPublic)) {
-                                    makePublic = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!makePublic) continue;
-
-                        inheritanceMap.put(MiscUtil.toNormalName(classNode.name), MiscUtil.toNormalName(classNode.superName));
+                        inheritanceMap.put(MiscUtil.toNormalName(classNode.name, makePublics), MiscUtil.toNormalName(classNode.superName, makePublics));
 
                         // make everything public
                         for (MethodNode method : classNode.methods) {

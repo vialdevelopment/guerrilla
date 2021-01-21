@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.TreeSet;
 
 /**
@@ -26,13 +27,15 @@ public class FixAllClasses extends DefaultTask {
     public File buildClassesDirectory;
     /** project build resources folder */
     public File resourcesDir;
+    /** make publics list */
+    public List<String> makePublics;
     /** holder to pass around the classes being transformed */
     public GuerrillaGradlePlugin.AlreadyUsedTransformersHolder alreadyUsedTransformersHolder;
 
     @TaskAction
     public void transform() {
         // go over all classes to get references to PUBLICs abuse
-        TreeSet<String> publicsUsed = new TreeSet<>(); // a list of all Minecraft-public classes referenced
+        TreeSet<String> publicsUsed = new TreeSet<>(); // a list of all public classes referenced
         try {
             Files.walk(buildClassesDirectory.toPath()).forEach(path -> {
                 try {
@@ -47,8 +50,8 @@ public class FixAllClasses extends DefaultTask {
                         ClassVisitor classRemapper = new ClassRemapper(classNode, new Remapper() {
                             @Override
                             public String map(String internalName) {
-                                if (MiscUtil.isPublicName(internalName)) {
-                                    String normalizedName = internalName.substring(0, internalName.length() - 6);
+                                if (MiscUtil.isPublicName(internalName, makePublics)) {
+                                    String normalizedName = MiscUtil.toNormalName(internalName, makePublics);
                                     publicsUsed.add(normalizedName);
                                     return normalizedName;
                                 }

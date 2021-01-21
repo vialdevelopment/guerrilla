@@ -1,5 +1,7 @@
 package io.github.vialdevelopment.guerrillagradle.util;
 
+import java.util.List;
+
 /**
  * Miscellaneous utilities
  */
@@ -10,25 +12,32 @@ public class MiscUtil {
      * @param internalName class name
      * @return is reference
      */
-    public static boolean isPublicName(String internalName) {
-        return internalName.startsWith("net/minecraft/") && internalName.endsWith("PUBLIC");
+    public static boolean isPublicName(String internalName, List<String> makePublics) {
+        return isValidPublicName(internalName, makePublics) && internalName.endsWith("PUBLIC");
     }
 
-    public static boolean isValidPublicName(String internalName) {
-        return internalName.startsWith("net/minecraft/");
-    }
+    public static boolean isValidPublicName(String internalName, List<String> makePublics) {
+        final boolean[] transform = new boolean[] {false};
+        for (String aPublic : makePublics) {
+            if (internalName.matches(aPublic)) {
+                transform[0] = true;
+                break;
+            }
+        }
+        return transform[0];
+        }
 
     /**
-     * Class name to valid minecraft-public class name
+     * Class name to valid public class name
      * @param internalName class name
      * @return minecraft-public name
      */
-    public static String toPublicName(String internalName) {
-        return isValidPublicName(internalName) ? internalName + "PUBLIC" : internalName;
+    public static String toPublicName(String internalName, List<String> makePublics) {
+        return isValidPublicName(internalName, makePublics) ? internalName + "PUBLIC" : internalName;
     }
 
-    public static String toNormalName(String internalName) {
-        return isValidPublicName(internalName) ? internalName.substring(0, internalName.length()-6) : internalName;
+    public static String toNormalName(String internalName, List<String> makePublics) {
+        return isValidPublicName(internalName, makePublics) ? internalName.substring(0, internalName.length()-6) : internalName;
     }
 
 }
