@@ -112,11 +112,11 @@ public class FixTransformerClasses extends DefaultTask {
             ASMAnnotation transformMethodAnnotation = ASMAnnotation.getAnnotation(method, "Lio/github/vialdevelopment/guerrilla/annotation/TransformMethod;");
             if (transformMethodAnnotation == null) continue;
             if (transformMethodAnnotation.get("obfMethodName") == null) {
-                String remappedName = mapper.remapMethodName(deObfClassName, (String) transformMethodAnnotation.get("methodName"), (String) transformMethodAnnotation.get("methodArgs"));
+                String remappedName = mapper.remapMethodName(deObfClassName, (String) transformMethodAnnotation.get("methodName"), (String) transformMethodAnnotation.get("methodDesc"));
                 if (remappedName == null) continue;
                 String[] remapped = remappedName.split(" ");
                 transformMethodAnnotation.put("obfMethodName", remapped[0]);
-                transformMethodAnnotation.put("obfMethodArgs", remapped[1]);
+                transformMethodAnnotation.put("obfMethodDesc", remapped[1]);
 
                 transformMethodAnnotation.write();
             }
