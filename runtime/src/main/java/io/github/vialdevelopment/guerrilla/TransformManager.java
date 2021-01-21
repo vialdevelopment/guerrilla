@@ -291,12 +291,8 @@ public class TransformManager {
 
 
         try {
-            if (fileWriter != null) {
-                fileWriter.close();
-            }
-            if (printDumpFileLog != null) {
-                printDumpFileLog.close();
-            }
+            fileWriter.close();
+            printDumpFileLog.close();
             sw.close();
 
         } catch (IOException ioException) {
