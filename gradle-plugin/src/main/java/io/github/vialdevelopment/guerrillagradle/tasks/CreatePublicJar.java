@@ -8,6 +8,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.tree.ClassNode;
@@ -81,7 +82,22 @@ public class CreatePublicJar extends DefaultTask {
                     if (jarEntry.getName().endsWith(".class")) {
                         ClassNode classNode = new ClassNode();
                         ClassReader classReader = new ClassReader(read(jarFile.getInputStream(jarEntry), jarEntry.getSize()));
-                        // everything goes to new naming convention
+
+                        final boolean[] transform = {false};
+                        classReader.accept(new ClassVisitor(Opcodes.ASM9) {
+                            @Override
+                            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                                for (String aPublic : makePublics) {
+                                    if (name.matches(aPublic)) {
+                                        transform[0] = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }, 0);
+
+                        if (!transform[0]) continue;
+                        // remap to new naming convention
                         ClassVisitor classRemapper = new ClassRemapper(classNode, new Remapper() {
                             @Override
                             public String map(String internalName) {
