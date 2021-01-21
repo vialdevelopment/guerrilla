@@ -116,12 +116,12 @@ public class TransformManager {
 
         final String className = OBF ? transformClassAnnotation.obfClassName() : transformClassAnnotation.className();
 
-        if (getTransformMap().containsKey(className)) {
-            getTransformMap().get(className).add(transform.getName());
+        if (transformMap.containsKey(className)) {
+            transformMap.get(className).add(transform.getName());
         } else {
             List<String> names = new ArrayList<>();
             names.add(transform.getName());
-            getTransformMap().put(className, names);
+            transformMap.put(className, names);
         }
     }
 
@@ -164,7 +164,7 @@ public class TransformManager {
             return basicClass;
         }
 
-        final List<String> transformers = getTransformMap().get(name);
+        final List<String> transformers = transformMap.get(name);
 
         if (transformers == null) return basicClass;
 
@@ -304,51 +304,4 @@ public class TransformManager {
         }
     }
 
-    private static boolean containsAnnotation(MethodNode methodNode, Class<? extends Annotation> annotation) {
-        if (methodNode.visibleAnnotations == null && methodNode.invisibleAnnotations == null)
-            return false;
-
-        if (methodNode.visibleAnnotations != null) {
-            for (AnnotationNode visibleAnnotation : methodNode.visibleAnnotations) {
-                if (visibleAnnotation.desc.equals(ASMUtil.getClassDescriptor(annotation))) {
-                    return true;
-                }
-            }
-        }
-        if (methodNode.invisibleAnnotations != null) {
-            for (AnnotationNode invisibleAnnotation : methodNode.invisibleAnnotations) {
-                if (invisibleAnnotation.desc.equals(ASMUtil.getClassDescriptor(annotation))) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean containsAnnotation(FieldNode fieldNode, Class<? extends Annotation> annotation) {
-        if (fieldNode.visibleAnnotations == null && fieldNode.invisibleAnnotations == null)
-            return false;
-
-        String annotationDesc = ASMUtil.getClassDescriptor(annotation);
-
-        if (fieldNode.visibleAnnotations != null) {
-            for (AnnotationNode visibleAnnotation : fieldNode.visibleAnnotations) {
-                if (visibleAnnotation.desc.equals(annotationDesc)) {
-                    return true;
-                }
-            }
-        }
-        if (fieldNode.invisibleAnnotations != null) {
-            for (AnnotationNode invisibleAnnotation : fieldNode.invisibleAnnotations) {
-                if (invisibleAnnotation.desc.equals(annotationDesc)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public static Map<String, List<String>> getTransformMap() {
-        return transformMap;
-    }
 }
