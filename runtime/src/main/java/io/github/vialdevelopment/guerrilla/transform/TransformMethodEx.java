@@ -9,14 +9,14 @@ import io.github.vialdevelopment.guerrilla.transform.transformmethod.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static io.github.vialdevelopment.guerrilla.TransformManager.OBF;
 
 public class TransformMethodEx implements ITransform {
 
-    private static final ITransformMethod noAnnotationTransform = new InlineTransformMethod();
-    private static final ITransformMethod insertMethodTransform = new InsertTransformMethod();
-    private static final ITransformMethod overwriteMethodTransform = new OverwriteTransformMethod();
-    private static final ITransformMethod asmTransformationTransform = new ASMTransformMethod();
+    private static final ITransformMethod[] transforms = new ITransformMethod[] { new ASMTransformMethod(), new InlineTransformMethod(), new InsertTransformMethod(), new OverwriteTransformMethod() };
 
     @Override
     public void transform(ClassNode classBeingTransformed, ClassNode transformerNode) {
@@ -43,14 +43,17 @@ public class TransformMethodEx implements ITransform {
                 }
             }
 
-            if (transformMethodAnnotation == null && insertAnnotation == null && overwriteAnnotation == null && ignoreInlineAnnotation == null) {
-                noAnnotationTransform.insert(classBeingTransformed, transformerNode, null, transformerMethod, (ASMAnnotation) null);
-            } else if (transformerMethod != null && insertAnnotation != null && overwriteAnnotation == null && ignoreInlineAnnotation == null) {
-                insertMethodTransform.insert(classBeingTransformed, transformerNode, methodBeingTransformed, transformerMethod, transformMethodAnnotation, insertAnnotation);
-            } else if (transformerMethod != null && insertAnnotation == null && overwriteAnnotation != null && ignoreInlineAnnotation == null) {
-                overwriteMethodTransform.insert(classBeingTransformed, transformerNode, methodBeingTransformed, transformerMethod, transformMethodAnnotation);
-            } else if (transformerMethod != null && insertAnnotation == null && overwriteAnnotation == null && ignoreInlineAnnotation == null) {
-                asmTransformationTransform.insert(classBeingTransformed, transformerNode, methodBeingTransformed, transformerMethod, transformMethodAnnotation);
+            List<EAnnotationsUsed> annotationsUsedList = new ArrayList<>();
+            if (transformMethodAnnotation != null) annotationsUsedList.add(EAnnotationsUsed.TRANSFORM_METHOD);
+            if (insertAnnotation != null) annotationsUsedList.add(EAnnotationsUsed.INSERT);
+            if (overwriteAnnotation != null) annotationsUsedList.add(EAnnotationsUsed.OVERWRITE);
+            if (ignoreInlineAnnotation != null) annotationsUsedList.add(EAnnotationsUsed.IGNORE_INLINE);
+            for (ITransformMethod transform : transforms) {
+                List<EAnnotationsUsed> transformAnnotations = transform.getAnnotations();
+                if (annotationsUsedList.size() != transformAnnotations.size()) continue;
+                if (transformAnnotations.containsAll(annotationsUsedList) && annotationsUsedList.containsAll(transformAnnotations)) {
+                    transform.insert(classBeingTransformed, transformerNode, methodBeingTransformed, transformerMethod, transformMethodAnnotation, insertAnnotation, overwriteAnnotation, ignoreInlineAnnotation);
+                }
             }
         }
 

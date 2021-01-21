@@ -4,6 +4,9 @@ import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.util.List;
+
 public interface ITransformMethod {
     void insert(ClassNode classBeingTransformed, ClassNode transformerClass, MethodNode methodBeingTransformed, MethodNode transformerMethod, ASMAnnotation... asmAnnotation);
+    List<EAnnotationsUsed> getAnnotations();
 }

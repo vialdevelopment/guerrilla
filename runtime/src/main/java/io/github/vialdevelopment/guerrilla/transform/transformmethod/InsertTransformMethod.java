@@ -1,31 +1,25 @@
 package io.github.vialdevelopment.guerrilla.transform.transformmethod;
 
-import io.github.vialdevelopment.guerrilla.ASMFactory;
-import io.github.vialdevelopment.guerrilla.ASMUtil;
-import io.github.vialdevelopment.guerrilla.CallBack;
-import io.github.vialdevelopment.guerrilla.Pattern;
 import io.github.vialdevelopment.guerrilla.annotation.insert.At;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
 import io.github.vialdevelopment.guerrilla.transform.transformmethod.insert.*;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.RETURN;
 
 /**
  * Processes inserting the annotation
  */
 public class InsertTransformMethod implements ITransformMethod {
 
+    private static final List<EAnnotationsUsed> annotations = new ArrayList<>();
     private static final List<IInsert> inserters = new ArrayList();
 
     static {
+        annotations.add(EAnnotationsUsed.TRANSFORM_METHOD);
+        annotations.add(EAnnotationsUsed.INSERT);
+
         inserters.add(new InsertHead());
         inserters.add(new InsertReturn());
         inserters.add(new InsertInvoke());
@@ -37,7 +31,7 @@ public class InsertTransformMethod implements ITransformMethod {
      * @param transformerClass transformer class
      * @param methodBeingTransformed method being transformed
      * @param transformerMethod transformer method
-     * @param asmAnnotation asm annotations [ @TransformMethodEx, @Insert ]
+     * @param asmAnnotation asm annotations
      */
     @Override
     public void insert(ClassNode classBeingTransformed, ClassNode transformerClass, MethodNode methodBeingTransformed, MethodNode transformerMethod, ASMAnnotation... asmAnnotation) {
@@ -53,6 +47,11 @@ public class InsertTransformMethod implements ITransformMethod {
                 inserter.insert(classBeingTransformed, transformerClass, methodBeingTransformed, transformerMethod, insertAnnotation);
             }
         }
+    }
+
+    @Override
+    public List<EAnnotationsUsed> getAnnotations() {
+        return annotations;
     }
 
 }
