@@ -44,7 +44,7 @@ public class InsertField implements IInsert {
             // add parameter of a reference to this, if caller isn't static
             if ((methodBeingTransformed.access & ACC_STATIC) != ACC_STATIC) {
                 StringBuilder descStringBuilder = new StringBuilder(transformerMethod.desc);
-                descStringBuilder.insert(descStringBuilder.lastIndexOf(")"), "L" + classBeingTransformed.name.replace('.', '/') + ";");
+                descStringBuilder.insert(descStringBuilder.lastIndexOf(")"), "L" + classBeingTransformed.name + ";");
                 transformerMethod.desc = descStringBuilder.toString();
             }
             int parameters = 0;
@@ -94,7 +94,7 @@ public class InsertField implements IInsert {
             Pattern hookMethodPattern = new Pattern(
                     new MethodInsnNode(
                             INVOKESTATIC,
-                            ASMUtil.toExternalName(classBeingTransformed.name.replace('.', '/')),
+                            ASMUtil.toExternalName(classBeingTransformed.name),
                             transformerMethod.name,
                             transformerMethod.desc,
                             false

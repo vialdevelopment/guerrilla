@@ -81,7 +81,7 @@ public class InsertInvoke implements IInsert {
             if ((methodBeingTransformed.access & ACC_STATIC) != ACC_STATIC) {
                 // add parameter of a reference to this
                 StringBuilder descStringBuilder = new StringBuilder(transformerMethod.desc);
-                descStringBuilder.insert(descStringBuilder.lastIndexOf(")"), "L" + classBeingTransformed.name.replace('.', '/') + ";");
+                descStringBuilder.insert(descStringBuilder.lastIndexOf(")"), "L" + classBeingTransformed.name + ";");
                 transformerMethod.desc = descStringBuilder.toString();
             }
 
