@@ -49,27 +49,6 @@ public class AddClassesToTransformExclude extends DefaultTask {
         }
 
         try {
-            Files.walk(buildClassesDirectory.toPath()).forEach(path -> {
-                try {
-                    // make sure is file and isn't one we generated
-                    if (path.toFile().isFile() && path.toString().endsWith(".class")) {
-                        // read in the class file
-                        byte[] transformerBytes = Files.readAllBytes(path);
-
-                        ClassNode classNode = new ClassNode();
-                        ClassReader classReader = new ClassReader(transformerBytes);
-                        classReader.accept(classNode, 0);
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
             // now we write the classes to receive the public and non-final abuse to a file
             // to be done at runtime
             // FIXME this shouldn't be always in the main submodule
