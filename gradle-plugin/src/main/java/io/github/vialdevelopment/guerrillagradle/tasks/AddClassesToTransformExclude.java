@@ -23,7 +23,7 @@ public class AddClassesToTransformExclude extends DefaultTask {
     @TaskAction
     public void process() {
         TreeSet<String> toExclude = new TreeSet<>();
-        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + transformers.replace('.', '/'));
+        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + transformers);
         try {
             // loop over all transformer class files
             Files.walk(Paths.get(transformersFolder.toURI())).forEach(path -> {

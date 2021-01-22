@@ -38,7 +38,7 @@ public class FixTransformerClasses extends DefaultTask {
 
     @TaskAction
     public void transform() {
-        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + transformers.replace('.', '/'));
+        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + transformers);
         try {
             // loop over all transformer class files
             Files.walk(Paths.get(transformersFolder.toURI())).forEach(path -> {

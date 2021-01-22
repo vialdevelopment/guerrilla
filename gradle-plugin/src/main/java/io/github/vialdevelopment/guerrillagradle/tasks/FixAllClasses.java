@@ -90,7 +90,7 @@ public class FixAllClasses extends DefaultTask {
                                         publicsUsed.add(normalizedName);
                                         return normalizedName;
                                     }
-                                    if (internalName.startsWith(transformers.replace('.', '/'))) {
+                                    if (internalName.startsWith(transformers)) {
                                         return transformersTransforming.get(internalName);
                                     }
                                     return internalName;
