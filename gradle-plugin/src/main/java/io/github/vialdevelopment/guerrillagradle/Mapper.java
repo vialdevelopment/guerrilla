@@ -2,9 +2,7 @@ package io.github.vialdevelopment.guerrillagradle;
 
 import org.gradle.api.Project;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -39,13 +37,28 @@ public class Mapper {
         String mcpVersionNumber = mcpVersion.split("_")[1];
         mcpFolder = Paths.get(Paths.get(project.getGradle().getGradleUserHomeDir().getPath(), "caches/minecraft/de/oceanlabs/mcp/", mcpType + "/" + mcpVersionNumber).toString());
         // load the mappings
-        loadMappings();
+        loadMappings(project);
     }
 
     /**
      * Loads the mappings,
      */
-    public void loadMappings() {
+    public void loadMappings(Project project) {
+        File mappingsFile = new File(project.getBuildDir() + "/tmp/guerrilla/mappings");
+
+        if (mappingsFile.exists()) {
+            try {
+                FileInputStream fileInputStream = new FileInputStream(mappingsFile);
+                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+                unObfToObfMappings = (Map<String, String>) objectInputStream.readObject();
+                objectInputStream.close();
+                fileInputStream.close();
+                return;
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
         try {
             // get the file mcp-notch.srg
             File mcpToNotchSrgFile = null;
@@ -76,7 +89,13 @@ public class Mapper {
                 }
             }
 
-        } catch (FileNotFoundException e) {
+            FileOutputStream fileOutputStream = new FileOutputStream(mappingsFile);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(unObfToObfMappings);
+            objectOutputStream.close();
+            fileOutputStream.close();
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
