@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import static org.objectweb.asm.Opcodes.ASM5;
+
 /**
  * Fixes all the classes to be usable at runtime
  */
@@ -46,7 +48,7 @@ public class FixAllClasses extends DefaultTask {
             Files.walk(buildClassesDirectory.toPath()).forEach(path -> {
                 try {
                     // make sure is file and isn't one we generated
-                    if (path.toFile().isFile() && path.endsWith(".class")) {
+                    if (path.toFile().isFile() && path.toString().endsWith(".class") && !path.toString().equals("module-info.class")) {
                         // read in the class file
                         byte[] transformerBytes = Files.readAllBytes(path);
 
@@ -56,7 +58,18 @@ public class FixAllClasses extends DefaultTask {
                         // remap publics used
                         ClassVisitor classRemapper;
 
-                        if (classNode.name.equals(transformer)) {
+                        final boolean[] isMainTransformer = {false};
+
+                        classReader.accept(new ClassVisitor(ASM5) {
+                            @Override
+                            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                                if (name.equals(transformer)) {
+                                    isMainTransformer[0] = true;
+                                }
+                            }
+                        }, 0);
+
+                        if (isMainTransformer[0]) {
                             classRemapper = new ClassRemapper(classNode, new Remapper() {
                                 @Override
                                 public String map(String internalName) {
@@ -78,8 +91,6 @@ public class FixAllClasses extends DefaultTask {
                                         return normalizedName;
                                     }
                                     if (internalName.startsWith(transformers.replace('.', '/'))) {
-                                        System.out.println(internalName);
-                                        System.out.println(transformersTransforming);
                                         return transformersTransforming.get(internalName);
                                     }
                                     return internalName;
