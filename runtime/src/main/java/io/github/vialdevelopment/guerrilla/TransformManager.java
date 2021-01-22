@@ -43,6 +43,7 @@ public class TransformManager {
     private static final List<String> transformExclude = new ArrayList<>();
 
     public static void init() {
+        if (HAS_INIT) return;
         try {
             // read in all guerrilla-make-public.txt files
             Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("guerrilla-make-public.txt");
