@@ -55,20 +55,20 @@ public class FixAllClasses extends DefaultTask {
                         ClassNode classNode = new ClassNode();
                         ClassReader classReader = new ClassReader(transformerBytes);
 
-                        // remap publics used
-                        ClassVisitor classRemapper;
 
                         final boolean[] isMainTransformer = {false};
 
                         classReader.accept(new ClassVisitor(ASM5) {
                             @Override
                             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                                if (name.equals(transformer)) {
+                                if (name.startsWith(transformers) || name.equals(transformer)) {
                                     isMainTransformer[0] = true;
                                 }
                             }
                         }, 0);
 
+                        // remap publics used
+                        ClassVisitor classRemapper;
                         if (isMainTransformer[0]) {
                             classRemapper = new ClassRemapper(classNode, new Remapper() {
                                 @Override
