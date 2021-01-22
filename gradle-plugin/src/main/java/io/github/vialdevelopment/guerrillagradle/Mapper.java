@@ -19,7 +19,7 @@ public class Mapper {
     /** A hashmap containing the mappings from unObf -> obf */
     public Map<String, String> unObfToObfMappings = new HashMap<>();
     /** A hashmap of the inheritance structure of the minecraft classes */
-    public Map<String, String> inheritanceTree;
+    public Map<String, String> inheritanceMap;
 
     /**
      * Initializes the mapper to be ready to query
@@ -140,7 +140,7 @@ public class Mapper {
         String name = className;
         while (found == null && name != null) {
             found = unObfToObfMappings.get(name + "/" + methodName + " " + methodArgs);
-            name = inheritanceTree.get(name);
+            name = inheritanceMap.get(name);
         }
 
         if (found == null) {
@@ -166,7 +166,7 @@ public class Mapper {
         String name = className;
         while (found == null && name != null) {
             found = unObfToObfMappings.get(name + "/" + fieldName);
-            name = inheritanceTree.get(name);
+            name = inheritanceMap.get(name);
         }
 
         if (found == null) {
@@ -190,7 +190,7 @@ public class Mapper {
         String name = className;
         while (found == null && name != null) {
             found = unObfToObfMappings.get(name + "/" + methodName + " " + methodSignature);
-            name = inheritanceTree.get(name);
+            name = inheritanceMap.get(name);
         }
 
         if (found == null) {
