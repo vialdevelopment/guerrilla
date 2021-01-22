@@ -1,6 +1,5 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
-import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePlugin;
 import io.github.vialdevelopment.guerrillagradle.util.MiscUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
@@ -9,13 +8,14 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
-import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.*;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 /**
@@ -29,8 +29,14 @@ public class FixAllClasses extends DefaultTask {
     public File resourcesDir;
     /** make publics list */
     public List<String> makePublics;
-    /** holder to pass around the classes being transformed */
-    public GuerrillaGradlePlugin.AlreadyUsedTransformersHolder alreadyUsedTransformersHolder;
+    /** transformers package */
+    public String transformers;
+    /** main transformer class */
+    public String transformer;
+    /** classes being transformed */
+    public TreeSet<String> alreadyUsedTransformers;
+    /** classes transformers are transforming */
+    public Map<String, String> transformersTransforming;
 
     @TaskAction
     public void transform() {
@@ -40,26 +46,49 @@ public class FixAllClasses extends DefaultTask {
             Files.walk(buildClassesDirectory.toPath()).forEach(path -> {
                 try {
                     // make sure is file and isn't one we generated
-                    if (path.toFile().isFile() && path.toString().endsWith(".class")) {
+                    if (path.toFile().isFile() && path.endsWith(".class")) {
                         // read in the class file
                         byte[] transformerBytes = Files.readAllBytes(path);
 
                         ClassNode classNode = new ClassNode();
                         ClassReader classReader = new ClassReader(transformerBytes);
-                        // get publics used
-                        ClassVisitor classRemapper = new ClassRemapper(classNode, new Remapper() {
-                            @Override
-                            public String map(String internalName) {
-                                if (MiscUtil.isPublicName(internalName, makePublics)) {
-                                    String normalizedName = MiscUtil.toNormalName(internalName, makePublics);
-                                    publicsUsed.add(normalizedName);
-                                    return normalizedName;
+
+                        // remap publics used
+                        ClassVisitor classRemapper;
+
+                        if (classNode.name.equals(transformer)) {
+                            classRemapper = new ClassRemapper(classNode, new Remapper() {
+                                @Override
+                                public String map(String internalName) {
+                                    if (MiscUtil.isPublicName(internalName, makePublics)) {
+                                        String normalizedName = MiscUtil.toNormalName(internalName, makePublics);
+                                        publicsUsed.add(normalizedName);
+                                        return normalizedName;
+                                    }
+                                    return internalName;
                                 }
-                                return internalName;
-                            }
-                        });
+                            });
+                        } else {
+                            classRemapper = new ClassRemapper(classNode, new Remapper() {
+                                @Override
+                                public String map(String internalName) {
+                                    if (MiscUtil.isPublicName(internalName, makePublics)) {
+                                        String normalizedName = MiscUtil.toNormalName(internalName, makePublics);
+                                        publicsUsed.add(normalizedName);
+                                        return normalizedName;
+                                    }
+                                    if (internalName.startsWith(transformers.replace('.', '/'))) {
+                                        System.out.println(internalName);
+                                        System.out.println(transformersTransforming);
+                                        return transformersTransforming.get(internalName);
+                                    }
+                                    return internalName;
+                                }
+                            });
+                        }
 
                         classReader.accept(classRemapper, 0);
+
 
                         // write the fixed class back
                         ClassWriter classWriter = new ClassWriter(0);
@@ -82,7 +111,7 @@ public class FixAllClasses extends DefaultTask {
             File makePublicTXTFile = new File(makePublicTXTPath);
             makePublicTXTFile.getParentFile().mkdirs();
             FileWriter fileWriter = new FileWriter(makePublicTXTFile);
-            publicsUsed.removeIf(alreadyUsedTransformersHolder.alreadyDone::contains);
+            publicsUsed.removeIf(alreadyUsedTransformers::contains);
             for (String s : publicsUsed) {
                 fileWriter.write(s);
                 fileWriter.write("\n");

@@ -1,6 +1,5 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
-import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePlugin;
 import io.github.vialdevelopment.guerrillagradle.Mapper;
 import io.github.vialdevelopment.guerrillagradle.util.ASMAnnotation;
 import org.gradle.api.DefaultTask;
@@ -19,6 +18,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeSet;
 
 /**
  * Fixes the transformer classes to be usable at runtime
@@ -30,8 +31,10 @@ public class FixTransformerClasses extends DefaultTask {
     public String transformers;
     /** mapper instance */
     public Mapper mapper;
-    /** holder to pass around the classes being transformed */
-    public GuerrillaGradlePlugin.AlreadyUsedTransformersHolder alreadyUsedTransformersHolder;
+    /** classes being transformed */
+    public TreeSet<String> alreadyUsedTransformers;
+    /** classes transformers are transforming */
+    public Map<String, String> transformersTransforming;
 
     @TaskAction
     public void transform() {
@@ -51,7 +54,8 @@ public class FixTransformerClasses extends DefaultTask {
 
                         removeSuper(classNode);
                         String deobfClassName = remapClassName(classNode);
-                        alreadyUsedTransformersHolder.alreadyDone.add(deobfClassName.replace('.', '/'));
+                        alreadyUsedTransformers.add(deobfClassName.replace('.', '/'));
+                        transformersTransforming.put(classNode.name, deobfClassName.replace('.', '/'));
                         remapMethodNames(classNode, deobfClassName);
                         remapFieldRedirects(classNode);
                         remapMethodRedirects(classNode);

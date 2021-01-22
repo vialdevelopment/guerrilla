@@ -7,18 +7,21 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.JavaCompile;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 
 public class GuerrillaGradlePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         GuerrillaGradlePluginExtension extension = project.getExtensions().create("guerrilla", GuerrillaGradlePluginExtension.class);
+        JavaCompile javaCompile = (JavaCompile) project.getTasks().getByName("compileJava");
 
         Mapper mapper = new Mapper();
+        TreeSet<String> alreadyDone = new TreeSet<>();
+        Map<String, String> transformersTransforming = new HashMap<>();
 
-        AlreadyUsedTransformersHolder alreadyUsedTransformersHolder = new AlreadyUsedTransformersHolder();
 
-        JavaCompile javaCompile = (JavaCompile) project.getTasks().getByName("compileJava");
 
         TaskProvider<CreatePublicJar> createPublicJarTaskProvider = project.getTasks().register("createPublicJar", CreatePublicJar.class);
         createPublicJarTaskProvider.configure(task -> {
@@ -38,15 +41,18 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.buildClassesDirectory = javaCompile.getDestinationDir();
             task.transformers = extension.transformers;
             task.mapper = mapper;
-            task.alreadyUsedTransformersHolder = alreadyUsedTransformersHolder;
+            task.alreadyUsedTransformers = alreadyDone;
+            task.transformersTransforming = transformersTransforming;
         });
 
         TaskProvider<FixAllClasses> fixAllClassesTaskProvider = project.getTasks().register("fixAllClasses", FixAllClasses.class);
         fixAllClassesTaskProvider.configure(task -> {
             task.buildClassesDirectory = javaCompile.getDestinationDir();
             task.resourcesDir = new File(project.getBuildDir() + "/resources");
-            task.alreadyUsedTransformersHolder = alreadyUsedTransformersHolder;
+            task.alreadyUsedTransformers = alreadyDone;
             task.makePublics = extension.makePublic;
+            task.transformers = extension.transformers;
+            task.transformer = extension.transformer;
         });
 
         TaskProvider<AddClassesToTransformExclude> addClassesToTransformExcludeTaskProvider = project.getTasks().register("AddRuntimeTransformExclude", AddClassesToTransformExclude.class);
@@ -70,9 +76,5 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             });
             project.getDependencies().add("compile", ":public");
         });
-    }
-
-    public static class AlreadyUsedTransformersHolder {
-        public TreeSet<String> alreadyDone = new TreeSet<>();
     }
 }
