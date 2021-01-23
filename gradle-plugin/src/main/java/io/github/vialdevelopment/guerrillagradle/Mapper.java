@@ -130,21 +130,21 @@ public class Mapper {
      * Returns the obf name of the method
      * @param className owner class of method
      * @param methodName method un-obf name
-     * @param methodArgs arguments of method
+     * @param methodDesc arguments of method
      * @return obf name
      */
-    public String remapMethodName(String className, String methodName, String methodArgs) {
+    public String remapMethodName(String className, String methodName, String methodDesc) {
         className = className.replace('.', '/');
-        String found = unObfToObfMappings.get(className + "/" + methodName + " " + methodArgs);
+        String found = unObfToObfMappings.get(className + "/" + methodName + " " + methodDesc);
 
         String name = className;
         while (found == null && name != null) {
-            found = unObfToObfMappings.get(name + "/" + methodName + " " + methodArgs);
+            found = unObfToObfMappings.get(name + "/" + methodName + " " + methodDesc);
             name = inheritanceMap.get(name);
         }
 
         if (found == null) {
-            handleUnmapped(remap.METHOD_NAME, className + "/" + methodName + " " + methodArgs);
+            handleUnmapped(remap.METHOD_NAME, className + "/" + methodName + " " + methodDesc);
             return null;
         }
 

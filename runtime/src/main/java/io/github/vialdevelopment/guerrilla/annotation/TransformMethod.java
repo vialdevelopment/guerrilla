@@ -35,7 +35,7 @@ public @interface TransformMethod {
     /**
      * @return the obfuscated description of the method
      *
-     * Default allows for obfMethodArgs to not be entered
+     * Default allows for obfMethodDesc to not be entered
      * This should be impl'd by checking if the string is empty
      */
     String obfMethodDesc() default "";

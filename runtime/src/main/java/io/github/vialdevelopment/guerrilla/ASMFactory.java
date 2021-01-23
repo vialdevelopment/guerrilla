@@ -70,13 +70,13 @@ public class ASMFactory {
      * can have both returns instructions and to return value
      * @param event event to be fired
      * @param returnType return type
-     * @param methodArgs instructions to load method arguments
+     * @param methodDesc instructions to load method arguments
      * @param eventDesc event method init description
      * @param returns instructions to load return value
      * @param toReturn value to return
      * @return asm pattern for this
      */
-    public static Pattern fireAndReturnIfCancelledWithArgsAndCustomReturn(Class event, EReturnTypes returnType, List<AbstractInsnNode> methodArgs, String eventDesc, List<AbstractInsnNode> returns, Object toReturn) {
+    public static Pattern fireAndReturnIfCancelledWithArgsAndCustomReturn(Class event, EReturnTypes returnType, List<AbstractInsnNode> methodDesc, String eventDesc, List<AbstractInsnNode> returns, Object toReturn) {
         String eventName = event.getName().replace('.', '/');
 
         List<AbstractInsnNode> nodes = new ArrayList<>();
@@ -88,8 +88,8 @@ public class ASMFactory {
         // dup so that can call <init> and store in var 1
         nodes.add(new InsnNode(DUP));
         // load event args
-        if (methodArgs != null) {
-            nodes.addAll(methodArgs);
+        if (methodDesc != null) {
+            nodes.addAll(methodDesc);
         }
         // init the event
         nodes.add(new MethodInsnNode(INVOKESPECIAL, eventName, "<init>", eventDesc, false));

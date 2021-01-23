@@ -30,7 +30,7 @@ public class TransformMethodEx implements ITransform {
             if (transformMethodAnnotation != null) {
                 // method to target depends on if in obfuscated environment
                 final String transformName = (String) (OBF ? transformMethodAnnotation.get("obfMethodName") : transformMethodAnnotation.get("methodName"));
-                final String transformArgs = (String) (OBF ? transformMethodAnnotation.get("obfMethodArgs") : transformMethodAnnotation.get("methodArgs"));
+                final String transformArgs = (String) (OBF ? transformMethodAnnotation.get("obfMethodDesc") : transformMethodAnnotation.get("methodDesc"));
                 // get the method node targeted
                 for (Object object : classBeingTransformed.methods) {
                     final MethodNode methodNode = (MethodNode) object;
