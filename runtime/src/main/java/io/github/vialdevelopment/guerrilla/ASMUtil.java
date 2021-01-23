@@ -188,6 +188,49 @@ public class ASMUtil {
     }
 
     /**
+     * Makes the hook method static, by appending a "this" parameter onto the end
+     * @param classCalledFrom the class the hook method is called from
+     * @param methodCalledFrom the method the hook method is called from
+     * @param hookMethod the hook method
+     */
+    public static void makeMethodStatic(ClassNode classCalledFrom, MethodNode methodCalledFrom, MethodNode hookMethod) {
+        if ((hookMethod.access & ACC_STATIC) != ACC_STATIC) { // method wasn't static
+            // add parameter of a reference to this, if caller isn't static
+            if ((methodCalledFrom.access & ACC_STATIC) != ACC_STATIC) {
+
+                StringBuilder descStringBuilder = new StringBuilder(hookMethod.desc);
+                descStringBuilder.insert(descStringBuilder.lastIndexOf(")"), "L" + classCalledFrom.name + ";");
+                hookMethod.desc = descStringBuilder.toString();
+
+                int parameters = 0;
+                for (Type argumentType : Type.getArgumentTypes(hookMethod.desc)) parameters += argumentType.getSize();
+
+                // shift down all var insn as 0 is 1st arg in static
+                for (AbstractInsnNode instruction : hookMethod.instructions) {
+                    if (instruction instanceof VarInsnNode) {
+                        if (((VarInsnNode) instruction).var < parameters) {
+                            ((VarInsnNode) instruction).var --;
+                        } else {
+                            ((VarInsnNode) instruction).var ++;
+                        }
+                    }
+                }
+
+                // replaces references to this with references to last parameter
+                // this shouldn't happen if caller was static
+                // TODO throw an error if there is a reference to this in a static caller
+                new Pattern(new VarInsnNode(ALOAD, -1)).
+                        replace(hookMethod.instructions,
+                                new Pattern(new VarInsnNode(ALOAD, parameters-1)));
+
+                // fix local vars so that asm verifier doesn't complain
+                hookMethod.localVariables.forEach(localVariableNode -> localVariableNode.index++);
+            }
+        }
+        hookMethod.access = ACC_PUBLIC | ACC_STATIC;
+    }
+
+    /**
      * Prepares the method for insertion
      * @param insertedIntoMethod method being inserted into
      * @param methodNode method to prepare

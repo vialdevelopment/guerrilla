@@ -5,7 +5,6 @@ import io.github.vialdevelopment.guerrilla.ASMUtil;
 import io.github.vialdevelopment.guerrilla.Pattern;
 import io.github.vialdevelopment.guerrilla.annotation.insert.At;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
-import io.github.vialdevelopment.guerrilla.transform.transformmethod.InsertTransformMethod;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
@@ -74,39 +73,9 @@ public class InsertInvoke implements IInsert {
                 classBeingTransformed.methods.add(transformerMethod);
                 // naming scheme
                 transformerMethod.name += "Hook";
-                // make hook static
-                transformerMethod.access = ACC_PUBLIC | ACC_STATIC;
             }
-            // add parameter for "this" object if not static caller
-            if ((methodBeingTransformed.access & ACC_STATIC) != ACC_STATIC) {
-                // add parameter of a reference to this
-                StringBuilder descStringBuilder = new StringBuilder(transformerMethod.desc);
-                descStringBuilder.insert(descStringBuilder.lastIndexOf(")"), "L" + classBeingTransformed.name + ";");
-                transformerMethod.desc = descStringBuilder.toString();
-            }
-
-            int parameters = 0;
-            for (Type argumentType : Type.getArgumentTypes(transformerMethod.desc)) parameters += argumentType.getSize();
+            ASMUtil.makeMethodStatic(classBeingTransformed, methodBeingTransformed, transformerMethod);
             {
-                // shift down all var insn as 0 is 1st arg in static
-                for (AbstractInsnNode instruction : transformerMethod.instructions) {
-                    if (instruction instanceof VarInsnNode) {
-                        if (((VarInsnNode) instruction).var < parameters) {
-                            ((VarInsnNode) instruction).var--;
-                        } else {
-                            ((VarInsnNode) instruction).var++;
-                        }
-                    }
-                }
-            }
-            {
-                // replaces references to this with references to last parameter
-                // this shouldn't ever happen if the caller was static
-                // TODO throw an error if -1 in static caller
-                new Pattern(new VarInsnNode(ALOAD, -1))
-                        .replace(transformerMethod.instructions,
-                                new Pattern(new VarInsnNode(ALOAD, parameters-1)));
-
                 // replace references
                 Pattern newMethodCall = new Pattern(
                         new MethodInsnNode(

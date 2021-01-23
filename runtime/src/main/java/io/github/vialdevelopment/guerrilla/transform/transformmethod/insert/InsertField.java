@@ -40,36 +40,8 @@ public class InsertField implements IInsert {
             transformerMethod.name += "hook";
         }
 
-        if ((transformerMethod.access & ACC_STATIC) != ACC_STATIC) { // method wasn't static
-            // add parameter of a reference to this, if caller isn't static
-            if ((methodBeingTransformed.access & ACC_STATIC) != ACC_STATIC) {
+        ASMUtil.makeMethodStatic(classBeingTransformed, methodBeingTransformed, transformerMethod);
 
-                StringBuilder descStringBuilder = new StringBuilder(transformerMethod.desc);
-                descStringBuilder.insert(descStringBuilder.lastIndexOf(")"), "L" + classBeingTransformed.name + ";");
-                transformerMethod.desc = descStringBuilder.toString();
-
-                int parameters = 0;
-                for (Type argumentType : Type.getArgumentTypes(transformerMethod.desc)) parameters += argumentType.getSize();
-
-                // shift down all var insn as 0 is 1st arg in static
-                for (AbstractInsnNode instruction : transformerMethod.instructions) {
-                    if (instruction instanceof VarInsnNode) {
-                        if (((VarInsnNode) instruction).var < parameters) {
-                            ((VarInsnNode) instruction).var --;
-                        } else {
-                            ((VarInsnNode) instruction).var ++;
-                        }
-                    }
-                }
-
-                // replaces references to this with references to last parameter
-                // this shouldn't happen if caller was static
-                // TODO throw an error if there is a reference to this in a static caller
-                new Pattern(new VarInsnNode(ALOAD, -1)).
-                        replace(transformerMethod.instructions,
-                                new Pattern(new VarInsnNode(ALOAD, parameters-1)));
-            }
-        }
         {
             // change access
             transformerMethod.access = ACC_PUBLIC | ACC_STATIC;
