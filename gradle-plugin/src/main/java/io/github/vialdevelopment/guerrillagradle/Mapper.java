@@ -5,10 +5,7 @@ import org.gradle.api.Project;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * The Mapper is used to load mappings and called to obtain obfuscated names
@@ -134,23 +131,53 @@ public class Mapper {
      * @return obf name
      */
     public String remapMethodName(String className, String methodName, String methodDesc) {
-        className = className.replace('.', '/');
-        String found = unObfToObfMappings.get(className + "/" + methodName + " " + methodDesc);
+        if (!methodName.equals("<init>")) {
+            className = className.replace('.', '/');
+            String found = unObfToObfMappings.get(className + "/" + methodName + " " + methodDesc);
 
-        String name = className;
-        while (found == null && name != null) {
-            found = unObfToObfMappings.get(name + "/" + methodName + " " + methodDesc);
-            name = inheritanceMap.get(name);
+            String name = className;
+            while (found == null && name != null) {
+                found = unObfToObfMappings.get(name + "/" + methodName + " " + methodDesc);
+                name = inheritanceMap.get(name);
+            }
+
+            if (found == null) {
+                handleUnmapped(remap.METHOD_NAME, className + "/" + methodName + " " + methodDesc);
+                return null;
+            }
+
+            String[] wholeSplit = found.split(" ");
+
+            return wholeSplit[0].substring(wholeSplit[0].lastIndexOf("/")+1) + " " + wholeSplit[1];
+        } else {
+
+            StringBuilder parameters = new StringBuilder();
+
+            boolean inName = false;
+            StringBuilder current = new StringBuilder();
+            for (char c : methodDesc.toCharArray()) {
+                if (c == '(') {
+                } else if (c == 'L') {
+                    inName = true;
+                } else if (c == ';') {
+                    inName = false;
+                    parameters.append("L").append(remapClassName(current.toString())).append(";");
+                    current = new StringBuilder();
+
+                } else if (!inName) {
+                    if (c == ')') { // end of parameters
+                        break;
+                    } else if (c != '(') {
+                        parameters.append(c);
+                    } else {
+                        current.append(c);
+                    }
+                } else {
+                    current.append(c);
+                }
+            }
+            return  "<init> " + parameters;
         }
-
-        if (found == null) {
-            handleUnmapped(remap.METHOD_NAME, className + "/" + methodName + " " + methodDesc);
-            return null;
-        }
-
-        String[] wholeSplit = found.split(" ");
-
-        return wholeSplit[0].substring(wholeSplit[0].lastIndexOf("/")+1) + " " + wholeSplit[1];
     }
 
     /**
