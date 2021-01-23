@@ -43,31 +43,31 @@ public class InsertField implements IInsert {
         if ((transformerMethod.access & ACC_STATIC) != ACC_STATIC) { // method wasn't static
             // add parameter of a reference to this, if caller isn't static
             if ((methodBeingTransformed.access & ACC_STATIC) != ACC_STATIC) {
+
                 StringBuilder descStringBuilder = new StringBuilder(transformerMethod.desc);
                 descStringBuilder.insert(descStringBuilder.lastIndexOf(")"), "L" + classBeingTransformed.name + ";");
                 transformerMethod.desc = descStringBuilder.toString();
-            }
-            int parameters = 0;
-            for (Type argumentType : Type.getArgumentTypes(transformerMethod.desc)) parameters += argumentType.getSize();
-            {
-                // fix arg references
+
+                int parameters = 0;
+                for (Type argumentType : Type.getArgumentTypes(transformerMethod.desc)) parameters += argumentType.getSize();
+
+                // shift down all var insn as 0 is 1st arg in static
                 for (AbstractInsnNode instruction : transformerMethod.instructions) {
                     if (instruction instanceof VarInsnNode) {
                         if (((VarInsnNode) instruction).var < parameters) {
-                            ((VarInsnNode) instruction).var--;
+                            ((VarInsnNode) instruction).var --;
                         } else {
-                            ((VarInsnNode) instruction).var++;
+                            ((VarInsnNode) instruction).var ++;
                         }
                     }
                 }
-            }
-            {
+
                 // replaces references to this with references to last parameter
                 // this shouldn't happen if caller was static
                 // TODO throw an error if there is a reference to this in a static caller
                 new Pattern(new VarInsnNode(ALOAD, -1)).
                         replace(transformerMethod.instructions,
-                                new Pattern(new VarInsnNode(ALOAD, ASMUtil.parameters(transformerMethod.desc).size()-1)));
+                                new Pattern(new VarInsnNode(ALOAD, parameters-1)));
             }
         }
         {
@@ -103,6 +103,11 @@ public class InsertField implements IInsert {
             // only load this if not static
             if ((methodBeingTransformed.access & ACC_STATIC) != ACC_STATIC) {
                 hookMethodPattern.patternNodes.add(0, new VarInsnNode(ALOAD, 0));
+            }
+            // load caller's args
+            Type[] argumentTypes = Type.getArgumentTypes(methodBeingTransformed.desc);
+            for (int i = argumentTypes.length-1; i >= 0; i--) {
+                hookMethodPattern.patternNodes.add(0, new VarInsnNode(argumentTypes[i].getOpcode(ILOAD), i+1));
             }
             // replace
             new Pattern(fieldCall).replace(methodBeingTransformed.instructions, hookMethodPattern);
