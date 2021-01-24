@@ -93,14 +93,7 @@ public class InsertInvoke implements IInsert {
                     newMethodCall.patternNodes.add(0, new VarInsnNode(ALOAD, 0));
                 }
                 // load caller's args
-                List<AbstractInsnNode> loaders = new ArrayList<>();
-                Type[] argumentTypes = Type.getArgumentTypes(methodBeingTransformed.desc);
-                int counter = 0;
-                for (int i = 0; i < argumentTypes.length; i++) {
-                    loaders.add(new VarInsnNode(argumentTypes[i].getOpcode(ILOAD), counter+(staticCaller?0:1)));
-                    counter += argumentTypes[i].getSize();
-                }
-                newMethodCall.patternNodes.addAll(0, loaders);
+                newMethodCall = ASMFactory.loadAllMethodArgs(methodBeingTransformed.desc, staticCaller).add(newMethodCall);
                 // finally, replace the calls
                 new Pattern(methodCall).replace(methodBeingTransformed.instructions, newMethodCall);
             }

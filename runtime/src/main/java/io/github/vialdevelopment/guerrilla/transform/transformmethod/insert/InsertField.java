@@ -1,5 +1,6 @@
 package io.github.vialdevelopment.guerrilla.transform.transformmethod.insert;
 
+import io.github.vialdevelopment.guerrilla.ASMFactory;
 import io.github.vialdevelopment.guerrilla.ASMUtil;
 import io.github.vialdevelopment.guerrilla.Pattern;
 import io.github.vialdevelopment.guerrilla.annotation.insert.At;
@@ -77,10 +78,7 @@ public class InsertField implements IInsert {
                 hookMethodPattern.patternNodes.add(0, new VarInsnNode(ALOAD, 0));
             }
             // load caller's args
-            Type[] argumentTypes = Type.getArgumentTypes(methodBeingTransformed.desc);
-            for (int i = argumentTypes.length-1; i >= 0; i--) {
-                hookMethodPattern.patternNodes.add(0, new VarInsnNode(argumentTypes[i].getOpcode(ILOAD), i+1));
-            }
+            hookMethodPattern = ASMFactory.loadAllMethodArgs(methodBeingTransformed.desc, (methodBeingTransformed.access & ACC_STATIC) == ACC_STATIC).add(hookMethodPattern);
             // replace
             new Pattern(fieldCall).replace(methodBeingTransformed.instructions, hookMethodPattern);
         }

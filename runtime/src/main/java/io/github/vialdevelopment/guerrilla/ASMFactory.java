@@ -1,6 +1,7 @@
 package io.github.vialdevelopment.guerrilla;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.util.ArrayList;
@@ -185,6 +186,17 @@ public class ASMFactory {
         nodes.add(labelNode1);
 
         return new Pattern(nodes);
+    }
+
+    public static Pattern loadAllMethodArgs(String desc, boolean staticCaller) {
+        List<AbstractInsnNode> loaders = new ArrayList<>();
+        Type[] argumentTypes = Type.getArgumentTypes(desc);
+        int counter = 0;
+        for (Type argumentType : argumentTypes) {
+            loaders.add(new VarInsnNode(argumentType.getOpcode(ILOAD), counter + (staticCaller ? 0 : 1)));
+            counter += argumentType.getSize();
+        }
+        return new Pattern(loaders);
     }
 
     /**
