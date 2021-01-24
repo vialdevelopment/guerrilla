@@ -8,6 +8,9 @@ import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static io.github.vialdevelopment.guerrilla.TransformManager.OBF;
 import static org.objectweb.asm.Opcodes.*;
 
@@ -83,15 +86,21 @@ public class InsertInvoke implements IInsert {
                                 classBeingTransformed.name,
                                 transformerMethod.name,
                                 transformerMethod.desc));
+
+                boolean staticCaller = (methodBeingTransformed.access & ACC_STATIC) == ACC_STATIC;
                 // if non static caller, load this
-                if ((methodBeingTransformed.access & ACC_STATIC) != ACC_STATIC) {
+                if (!staticCaller) {
                     newMethodCall.patternNodes.add(0, new VarInsnNode(ALOAD, 0));
                 }
                 // load caller's args
+                List<AbstractInsnNode> loaders = new ArrayList<>();
                 Type[] argumentTypes = Type.getArgumentTypes(methodBeingTransformed.desc);
-                for (int i = argumentTypes.length-1; i >= 0; i--) {
-                    newMethodCall.patternNodes.add(0, new VarInsnNode(argumentTypes[i].getOpcode(ILOAD), i+1));
+                int counter = 0;
+                for (int i = 0; i < argumentTypes.length; i++) {
+                    loaders.add(new VarInsnNode(argumentTypes[i].getOpcode(ILOAD), counter+(staticCaller?0:1)));
+                    counter += argumentTypes[i].getSize();
                 }
+                newMethodCall.patternNodes.addAll(0, loaders);
                 // finally, replace the calls
                 new Pattern(methodCall).replace(methodBeingTransformed.instructions, newMethodCall);
             }
