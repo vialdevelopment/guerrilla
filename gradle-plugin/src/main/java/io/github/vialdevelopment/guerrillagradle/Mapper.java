@@ -161,7 +161,12 @@ public class Mapper {
                     inName = true;
                 } else if (c == ';') {
                     inName = false;
-                    parameters.append("L").append(remapClassName(current.toString())).append(";");
+                    String remapped = remapClassName(current.toString());
+                    if (remapped != null) {
+                        parameters.append("L").append(remapped).append(";");
+                    } else {
+                        parameters.append('L').append(current).append(';');
+                    }
                     current = new StringBuilder();
 
                 } else if (!inName) {
