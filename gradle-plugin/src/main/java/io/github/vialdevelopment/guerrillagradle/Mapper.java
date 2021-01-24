@@ -176,7 +176,7 @@ public class Mapper {
                     current.append(c);
                 }
             }
-            return  "<init> " + parameters;
+            return  "<init> (" + parameters + ")" + methodDesc.charAt(methodDesc.length()-1);
         }
     }
 
