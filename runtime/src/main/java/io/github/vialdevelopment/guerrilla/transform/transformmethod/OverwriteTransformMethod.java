@@ -20,6 +20,7 @@ public class OverwriteTransformMethod implements ITransformMethod {
 
     @Override
     public void insert(ClassNode classBeingTransformed, ClassNode transformerClass, MethodNode methodBeingTransformed, MethodNode transformerMethod, ASMAnnotation... asmAnnotation) {
+        transformerMethod.name = methodBeingTransformed.name;
         classBeingTransformed.methods.remove(methodBeingTransformed);
         classBeingTransformed.methods.add(transformerMethod);
     }
