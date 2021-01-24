@@ -46,7 +46,7 @@ public class TransformManager {
         if (HAS_INIT) return;
         try {
             // read in all guerrilla-make-public.txt files
-            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("guerrilla-make-public.txt");
+            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources(OBF ? "guerrilla-make-public-obf.txt" : "guerrilla-make-public-unobf.txt");
             while (enumeration.hasMoreElements()) {
                 URL currentURL = enumeration.nextElement();
                 try {

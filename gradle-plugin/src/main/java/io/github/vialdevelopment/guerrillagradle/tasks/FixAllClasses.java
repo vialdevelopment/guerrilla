@@ -1,5 +1,6 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.Mapper;
 import io.github.vialdevelopment.guerrillagradle.util.MiscUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
@@ -14,6 +15,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -39,6 +41,8 @@ public class FixAllClasses extends DefaultTask {
     public TreeSet<String> alreadyUsedTransformers;
     /** classes transformers are transforming */
     public Map<String, String> transformersTransforming;
+    /** mapper */
+    public Mapper mapper;
 
     @TaskAction
     public void transform() {
@@ -118,12 +122,35 @@ public class FixAllClasses extends DefaultTask {
             // now we write the classes to receive the public and non-final abuse to a file
             // to be done at runtime
             // FIXME this shouldn't be always in the main submodule
-            String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public.txt";
+            String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public-unobf.txt";
             File makePublicTXTFile = new File(makePublicTXTPath);
             makePublicTXTFile.getParentFile().mkdirs();
             FileWriter fileWriter = new FileWriter(makePublicTXTFile);
             publicsUsed.removeIf(alreadyUsedTransformers::contains);
             for (String s : publicsUsed) {
+                fileWriter.write(s);
+                fileWriter.write("\n");
+            }
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            // now we write the classes to receive the public and non-final abuse to a file
+            // to be done at runtime
+            // FIXME this shouldn't be always in the main submodule
+            // remap names for obf
+            TreeSet<String> remappedPublicsUsed = new TreeSet<>();
+            for (Iterator<String> iterator = publicsUsed.iterator(); iterator.hasNext(); ) {
+                String s = iterator.next();
+                String remapped = mapper.remapClassName(s);
+                remappedPublicsUsed.add(remapped != null ? remapped : s);
+            }
+            String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public-obf.txt";
+            File makePublicTXTFile = new File(makePublicTXTPath);
+            makePublicTXTFile.getParentFile().mkdirs();
+            FileWriter fileWriter = new FileWriter(makePublicTXTFile);
+            for (String s : remappedPublicsUsed) {
                 fileWriter.write(s);
                 fileWriter.write("\n");
             }
