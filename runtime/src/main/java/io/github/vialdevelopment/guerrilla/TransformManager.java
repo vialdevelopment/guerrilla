@@ -255,13 +255,15 @@ public class TransformManager {
     public static void dumpDebug(File dumpFile, ClassNode classNode) {
         File traceDumpFile = new File(dumpFile.getPath() + ".trace.dump");
         File verifyDumpFile = new File(dumpFile.getPath() + ".verify.dump");
+        File disassembleDumpFile = new File(dumpFile.getPath() + ".diss.dump");
         traceDumpFile.getParentFile().mkdirs();
-        verifyDumpFile.getParentFile().mkdirs();
         FileWriter traceFileWriter;
         FileWriter verifyFileWriter;
+        FileWriter disassembleFileWriter;
         try {
             traceFileWriter = new FileWriter(traceDumpFile);
             verifyFileWriter = new FileWriter(verifyDumpFile);
+            disassembleFileWriter = new FileWriter(disassembleDumpFile);
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -269,13 +271,12 @@ public class TransformManager {
 
         PrintWriter printDumpFileLog = new PrintWriter(traceFileWriter);
         PrintWriter verifyDumpFileLog = new PrintWriter(verifyFileWriter);
+        PrintWriter disassembleDumpFileLog = new PrintWriter(disassembleFileWriter);
 
         try {
             // write disassembly output to log file
-            printDumpFileLog.println("########## Disassembly of Generated ##########");
             TraceClassVisitor traceClassVisitor = new TraceClassVisitor(printDumpFileLog);
             classNode.accept(traceClassVisitor);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -283,12 +284,8 @@ public class TransformManager {
         StringWriter sw = new StringWriter();
         // write verification output to log file
         try {
-            verifyDumpFileLog.println("############### Class verifier ###############");
-
             CheckClassAdapterClassNode.verify(classNode, null, true, verifyDumpFileLog);
-
             printDumpFileLog.println(sw.toString());
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -299,16 +296,25 @@ public class TransformManager {
             byte[] classBytes = classWriter.toByteArray();
             // dump class to file
             new FileOutputStream(dumpFile).write(classBytes);
-
         } catch (IOException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
         }
 
-
+        try {
+            Process process = Runtime.getRuntime().exec(new String[]{"javap", "-c", "-p", dumpFile.toString()});
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String s;
+            while ((s = bufferedReader.readLine()) != null) {
+                disassembleDumpFileLog.println(s);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         try {
             traceFileWriter.close();
             printDumpFileLog.close();
+            disassembleDumpFileLog.close();
             sw.close();
 
         } catch (IOException ioException) {
