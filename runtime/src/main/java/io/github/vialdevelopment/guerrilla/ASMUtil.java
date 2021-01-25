@@ -1,13 +1,19 @@
 package io.github.vialdevelopment.guerrilla;
 
-import static org.objectweb.asm.Opcodes.*;
-
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
-import org.objectweb.asm.tree.analysis.*;
+import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.SourceInterpreter;
+import org.objectweb.asm.tree.analysis.SourceValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.objectweb.asm.Opcodes.*;
 
 /**
  * @author NirvanaNevermind
@@ -251,20 +257,18 @@ public class ASMUtil {
         int parameters = Arrays.stream(Type.getArgumentTypes(insertedIntoMethod.desc)).mapToInt(Type::getSize).sum();
         // decrement parameters if static
         parameters = (insertedIntoMethod.access & Opcodes.ACC_STATIC) != 0 ? parameters - 1 : parameters;
-        // finally, fix all var references that aren't to this or parameters
-        for (AbstractInsnNode instruction : methodNode.instructions) {
-            if (instruction instanceof VarInsnNode) {
-                if (((VarInsnNode) instruction).var > parameters) {
-                    // we do this so that the ASM analyzer doesn't freak out over the changed local variable not being defined already
-                    LocalVariableNode localVariableNode = methodNode.localVariables.stream().filter(local -> local.index == ((VarInsnNode) instruction).var).findFirst().orElse(null);
-                    if (localVariableNode != null) {
-                        localVariableNode.index += maxVar;
-                        insertedIntoMethod.localVariables.add(localVariableNode);
-                    }
 
-                    ((VarInsnNode) instruction).var += maxVar;
+        {
+            // finally, fix all var references that aren't to this or parameters
+            int finalParameters = parameters;
+            int finalMaxVar = maxVar;
+            methodNode.accept(new MethodVisitor(ASM5) {
+                @Override
+                public void visitVarInsn(int opcode, int var) {
+                    if (var > finalParameters) var += finalMaxVar;
+                    super.visitVarInsn(opcode, var);
                 }
-            }
+            });
         }
 
         prepareMethodForInsertion(methodNode, returnType);
