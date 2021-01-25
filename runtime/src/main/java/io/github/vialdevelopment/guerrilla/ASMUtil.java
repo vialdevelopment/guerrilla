@@ -281,12 +281,6 @@ public class ASMUtil {
                 new InsnNode(RETURN)
         ).remove(methodNode.instructions);
 
-
-        // compiler likes to put in little valueOfs before returns, need to remove them
-        // FIXME include all cases of valueOf tricks
-        // TODO i don't think we need to remove these, to test
-        new Pattern(new MethodInsnNode(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;", false)).remove(methodNode.instructions);
-
         // return type can be null if we use annotation's default
         returnType = returnType == null ? ASMFactory.EReturnTypes.RETURN : returnType;
 
