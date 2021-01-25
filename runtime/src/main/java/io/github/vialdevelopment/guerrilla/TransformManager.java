@@ -253,17 +253,22 @@ public class TransformManager {
     }
 
     public static void dumpDebug(File dumpFile, ClassNode classNode) {
-        File dumpFileLog = new File(dumpFile.getPath() + ".dump");
-        dumpFileLog.getParentFile().mkdirs();
-        FileWriter fileWriter;
+        File traceDumpFile = new File(dumpFile.getPath() + ".trace.dump");
+        File verifyDumpFile = new File(dumpFile.getPath() + ".verify.dump");
+        traceDumpFile.getParentFile().mkdirs();
+        verifyDumpFile.getParentFile().mkdirs();
+        FileWriter traceFileWriter;
+        FileWriter verifyFileWriter;
         try {
-            fileWriter = new FileWriter(dumpFileLog);
+            traceFileWriter = new FileWriter(traceDumpFile);
+            verifyFileWriter = new FileWriter(verifyDumpFile);
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
-        StringWriter sw = new StringWriter();
-        PrintWriter printDumpFileLog = new PrintWriter(fileWriter);
+
+        PrintWriter printDumpFileLog = new PrintWriter(traceFileWriter);
+        PrintWriter verifyDumpFileLog = new PrintWriter(verifyFileWriter);
 
         try {
             // write disassembly output to log file
@@ -275,11 +280,12 @@ public class TransformManager {
             e.printStackTrace();
         }
 
+        StringWriter sw = new StringWriter();
         // write verification output to log file
         try {
-            printDumpFileLog.println("############### Class verifier ###############");
+            verifyDumpFileLog.println("############### Class verifier ###############");
 
-            CheckClassAdapterClassNode.verify(classNode, null, true, printDumpFileLog);
+            CheckClassAdapterClassNode.verify(classNode, null, true, verifyDumpFileLog);
 
             printDumpFileLog.println(sw.toString());
 
@@ -301,7 +307,7 @@ public class TransformManager {
 
 
         try {
-            fileWriter.close();
+            traceFileWriter.close();
             printDumpFileLog.close();
             sw.close();
 
