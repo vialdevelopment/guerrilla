@@ -49,4 +49,9 @@ public @interface At {
      * @return offset from target, only for INVOKE
      */
     int offset() default 0;
+
+    /**
+     * @return number of redirects to redirect
+     */
+    int numberMatch() default 0;
 }
