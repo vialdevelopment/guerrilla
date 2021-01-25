@@ -30,7 +30,7 @@ public class TransformManager {
 
     public static boolean HAS_INIT = false;
 
-    public static boolean OBF = !(Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
+    public static boolean OBF = false;
 
     public static boolean ASM_DEBUG = Boolean.parseBoolean(System.getProperty("guerrilla.asmdebug", "false"));
 
@@ -44,6 +44,14 @@ public class TransformManager {
 
     public static void init() {
         if (HAS_INIT) return;
+        try {
+            Class.forName("net.minecraft.launchwrapper.Launch");
+            if (Launch.blackboard != null) {
+                OBF = !(Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         try {
             // read in all guerrilla-make-public.txt files
             Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources(OBF ? "guerrilla-make-public-obf.txt" : "guerrilla-make-public-unobf.txt");
@@ -124,6 +132,7 @@ public class TransformManager {
             names.add(transform.getName());
             transformMap.put(className, names);
         }
+        transformExclude.add(transform.getName());
     }
 
     /**
