@@ -284,14 +284,30 @@ public class ASMUtil {
         // return type can be null if we use annotation's default
         returnType = returnType == null ? ASMFactory.EReturnTypes.RETURN : returnType;
 
-        // now replace calls to CallBack.cancel() with actual returns
-        new Pattern(
+        // now replace calls to CallBack.cancel() with actual returns, removing the valueOf tricks
+        for (List<AbstractInsnNode> cancel : new Pattern(
                 new MethodInsnNode(
                         INVOKESTATIC,
                         ASMUtil.getClassExternalName(CallBack.class),
                         "cancel", "(Ljava/lang/Object;)V", false
                 )
-        ).replace(methodNode.instructions, new Pattern(ASMFactory.generateValueReturn(returnType, null)));
+        ).match(methodNode.instructions)) {
+            AbstractInsnNode previous = cancel.get(0).getPrevious();
+            if (previous instanceof MethodInsnNode) {
+                if (    equalIns(previous, new MethodInsnNode(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;", false)) ||
+                        equalIns(previous, new MethodInsnNode(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;", false)) ||
+                        equalIns(previous, new MethodInsnNode(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false)) ||
+                        equalIns(previous, new MethodInsnNode(INVOKESTATIC, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", false)) ||
+                        equalIns(previous, new MethodInsnNode(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", false)) ||
+                        equalIns(previous, new MethodInsnNode(INVOKESTATIC, "java/lang/Byte", "valueOf", "(B)Ljava/lang/Byte;", false)) ||
+                        equalIns(previous, new MethodInsnNode(INVOKESTATIC, "java/lang/Character", "valueOf", "(C)Ljava/lang/Character;", false)) ||
+                        equalIns(previous, new MethodInsnNode(INVOKESTATIC, "java/lang/Short", "valueOf", "(S)Ljava/lang/Short;", false))
+                ) {
+                    methodNode.instructions.remove(cancel.get(0).getPrevious());
+                }
+            }
+            new Pattern(ASMFactory.generateValueReturn(returnType, null)).replace(methodNode.instructions, cancel.get(0));
+        }
     }
 
     /**
