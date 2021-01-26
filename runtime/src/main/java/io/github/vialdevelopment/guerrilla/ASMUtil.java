@@ -1,8 +1,6 @@
 package io.github.vialdevelopment.guerrilla;
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.Frame;
@@ -211,13 +209,13 @@ public class ASMUtil {
                 int parameters = 0;
                 for (Type argumentType : Type.getArgumentTypes(hookMethod.desc)) parameters += argumentType.getSize();
 
-                // shift down all var insn as 0 is 1st arg in static
-                for (AbstractInsnNode instruction : hookMethod.instructions) {
-                    if (instruction instanceof VarInsnNode) {
-                        if (((VarInsnNode) instruction).var < parameters) {
-                            ((VarInsnNode) instruction).var --;
-                        } else {
-                            ((VarInsnNode) instruction).var ++;
+                {
+                    // shift down all var insn as 0 is 1st arg in static
+                    for (AbstractInsnNode instruction : hookMethod.instructions) {
+                        if (instruction instanceof VarInsnNode) {
+                            ((VarInsnNode) instruction).var += ((VarInsnNode) instruction).var < parameters ? -1 : 1;
+                        } else if (instruction instanceof IincInsnNode) {
+                            ((IincInsnNode) instruction).var = ((IincInsnNode) instruction).var < parameters ? -1 : 1;
                         }
                     }
                 }
