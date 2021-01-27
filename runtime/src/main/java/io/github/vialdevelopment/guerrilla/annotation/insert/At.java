@@ -18,32 +18,16 @@ public @interface At {
     loc at();
 
     /**
-     *
-     * @return method call, in format Opcode owner name desc, only for INVOKE
+     * @return ref, in format Opcode owner name desc, for INVOKE and FIELD
      * eg INVOKEVIRTUAL net/minecraft/entity/Entity addVelocity (DDD)V
-     */
-    String methodCall() default "";
-
-    /**
-     *
-     * @return method call, in format Opcode owner name desc, only for INVOKE
-     * eg INVOKEVIRTUAL ffa g (DDD)V
-     */
-    String obfMethodCall() default "";
-
-    /**
-     *
-     * @return field reference, in format Opcode owner name desc, only for FIELD
      * eg GETFIELD net/minecraft/entity/player/EntityPlayer inventory Lnet/minecraft/entity/player/InventoryPlayer;
      */
-    String fieldRef() default "";
+    String ref() default "";
 
     /**
-     *
-     * @return field reference, in format Opcode owner name desc, only for FIELD
-     * eg  GETFIELD net/minecraft/entity/player/EntityPlayer inventory Lnet/minecraft/entity/player/InventoryPlayer;
+     * @return obfuscated ref
      */
-    String obfFieldRef() default "";
+    String obfRef() default "";
 
     /**
      * @return offset from target, only for INVOKE

@@ -57,8 +57,8 @@ public class InsertInvoke implements IInsert {
         // get the method we're redirecting on
         MethodInsnNode methodCall;
         {
-            String injectMethodCall = (String) ((ASMAnnotation)insertAnnotation.get("value")).get("methodCall");
-            String injectObfMethodCall = (String) ((ASMAnnotation)insertAnnotation.get("value")).get("obfMethodCall");
+            String injectMethodCall = (String) ((ASMAnnotation)insertAnnotation.get("value")).get("ref");
+            String injectObfMethodCall = (String) ((ASMAnnotation)insertAnnotation.get("value")).get("obfRef");
             String[] methodCallArgs;
             if (injectObfMethodCall != null) {
                 methodCallArgs = OBF ? injectObfMethodCall.split(" ") : injectMethodCall.split(" ");

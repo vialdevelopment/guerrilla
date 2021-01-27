@@ -52,8 +52,8 @@ public class InsertField implements IInsert {
         // get the field we're redirecting on
         FieldInsnNode fieldCall;
         {
-            String fieldRef = (String) ((ASMAnnotation) insertAnnotation.get("value")).get("fieldRef");
-            String obfFieldRef = (String) ((ASMAnnotation) insertAnnotation.get("value")).get("obfFieldRef");
+            String fieldRef = (String) ((ASMAnnotation) insertAnnotation.get("value")).get("ref");
+            String obfFieldRef = (String) ((ASMAnnotation) insertAnnotation.get("value")).get("obfRef");
             String[] fieldRegArgs;
             if (obfFieldRef != null) {
                 fieldRegArgs = OBF ? obfFieldRef.split(" ") : fieldRef.split(" ");

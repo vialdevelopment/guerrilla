@@ -135,14 +135,15 @@ public class FixTransformerClasses extends DefaultTask {
         for (MethodNode method : classNode.methods) {
             ASMAnnotation insertAnnotation = ASMAnnotation.getAnnotation(method, "Lio/github/vialdevelopment/guerrilla/annotation/insert/Insert;");
             if (insertAnnotation == null) continue;
-            if (((ASMAnnotation)insertAnnotation.get("value")).get("fieldRef") != null && ((ASMAnnotation)insertAnnotation.get("value")).get("obfFieldRef") == null) {
-                String[] fieldRefDis = ((String) ((ASMAnnotation) insertAnnotation.get("value")).get("fieldRef")).split(" ");
-                String remappedFieldRef = mapper.remapFieldAccess(fieldRefDis[1], fieldRefDis[2]);
-                if (remappedFieldRef == null) continue;
-                String rebuiltRemapped = fieldRefDis[0] + " " + remappedFieldRef.substring(0, remappedFieldRef.lastIndexOf("/")) + " " + remappedFieldRef.substring(remappedFieldRef.lastIndexOf("/")+1) + " " + fieldRefDis[3];
-                ((ASMAnnotation)insertAnnotation.get("value")).put("obfFieldRef", rebuiltRemapped);
-                insertAnnotation.write();
-            }
+            if (!((String[])((ASMAnnotation)insertAnnotation.get("value")).get("at"))[1].equals("FIELD")) continue;
+            if (!(((ASMAnnotation)insertAnnotation.get("value")).get("ref") != null && ((ASMAnnotation)insertAnnotation.get("value")).get("obfRef") == null))  continue;
+
+            String[] fieldRefDis = ((String) ((ASMAnnotation) insertAnnotation.get("value")).get("ref")).split(" ");
+            String remappedFieldRef = mapper.remapFieldAccess(fieldRefDis[1], fieldRefDis[2]);
+            if (remappedFieldRef == null) continue;
+            String rebuiltRemapped = fieldRefDis[0] + " " + remappedFieldRef.substring(0, remappedFieldRef.lastIndexOf("/")) + " " + remappedFieldRef.substring(remappedFieldRef.lastIndexOf("/")+1) + " " + fieldRefDis[3];
+            ((ASMAnnotation)insertAnnotation.get("value")).put("obfRef", rebuiltRemapped);
+            insertAnnotation.write();
         }
     }
 
@@ -154,17 +155,18 @@ public class FixTransformerClasses extends DefaultTask {
         for (MethodNode method : classNode.methods) {
             ASMAnnotation insertAnnotation = ASMAnnotation.getAnnotation(method, "Lio/github/vialdevelopment/guerrilla/annotation/insert/Insert;");
             if (insertAnnotation == null) continue;
+            if (!((String[])((ASMAnnotation)insertAnnotation.get("value")).get("at"))[1].equals("INVOKE")) continue;
             // only transform if no obf given
-            String obfMethodRef = (String) ((ASMAnnotation) insertAnnotation.get("value")).get("obfMethodCall");
-            if (obfMethodRef != null || ((ASMAnnotation) insertAnnotation.get("value")).get("methodCall") == null) continue;
+            String obfMethodRef = (String) ((ASMAnnotation) insertAnnotation.get("value")).get("obfRef");
+            if (obfMethodRef != null || ((ASMAnnotation) insertAnnotation.get("value")).get("ref") == null) continue;
             // get the obf name and add it to the annotation
-            String methodRef = (String) ((ASMAnnotation)(insertAnnotation.get("value"))).get("methodCall");
+            String methodRef = (String) ((ASMAnnotation)(insertAnnotation.get("value"))).get("ref");
             String[] methodRefDis = methodRef.split(" ");
             String remappedMethodRef = mapper.remapMethodAccess(methodRefDis[1], methodRefDis[2], methodRefDis[3]);
             // don't continue if there's no mapping for it
             if (remappedMethodRef == null) continue;
             String rebuiltRemapped = methodRefDis[0] + " " + remappedMethodRef.substring(0, remappedMethodRef.lastIndexOf("/")) + " " + remappedMethodRef.substring(remappedMethodRef.lastIndexOf("/")+1);
-            ((ASMAnnotation)insertAnnotation.get("value")).put("obfMethodCall", rebuiltRemapped);
+            ((ASMAnnotation)insertAnnotation.get("value")).put("obfRef", rebuiltRemapped);
 
             insertAnnotation.write();
         }
