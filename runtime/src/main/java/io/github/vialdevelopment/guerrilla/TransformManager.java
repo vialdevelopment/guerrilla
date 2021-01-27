@@ -45,7 +45,7 @@ public class TransformManager {
     public static void init() {
         if (HAS_INIT) return;
         try {
-            Class.forName("net.minecraft.launchwrapper.Launch");
+            Class.forName("net.minecraft.launchwrapper.Launch", false, TransformManager.class.getClassLoader());
             if (Launch.blackboard != null) {
                 OBF = !(Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
             }
