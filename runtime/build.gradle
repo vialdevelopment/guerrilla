@@ -23,7 +23,6 @@ dependencies {
     compile 'org.ow2.asm:asm-tree:9.0'
     compile 'org.ow2.asm:asm-util:9.0'
 
-    compile 'com.github.Grundlefleck:ASM-NonClassloadingExtensions:asm-nonclassloadingextensions-1.0-rc2'
     compile 'com.esotericsoftware:reflectasm:1.11.9'
     compile 'com.github.Mojang:LegacyLauncher:e4c0914eb7'
     testCompile group: 'junit', name: 'junit', version: '4.12'

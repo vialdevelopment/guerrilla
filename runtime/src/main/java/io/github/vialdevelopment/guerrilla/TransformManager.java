@@ -2,19 +2,22 @@ package io.github.vialdevelopment.guerrilla;
 
 import io.github.vialdevelopment.guerrilla.annotation.TransformClass;
 import io.github.vialdevelopment.guerrilla.asm.CheckClassAdapterClassNode;
-import io.github.vialdevelopment.guerrilla.transform.*;
+import io.github.vialdevelopment.guerrilla.transform.ITransform;
+import io.github.vialdevelopment.guerrilla.transform.TransformAddInterfacesEx;
+import io.github.vialdevelopment.guerrilla.transform.TransformMethodEx;
+import io.github.vialdevelopment.guerrilla.transform.TransformsFieldAccessEx;
 import net.minecraft.launchwrapper.Launch;
-import org.mutabilitydetector.asm.NonClassloadingClassWriter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.*;
-import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.*;
 
@@ -241,7 +244,7 @@ public class TransformManager {
                 dumpDebug(dumpFile, classNodeBeingTransformed);
             }
 
-            NonClassloadingClassWriter classWriter = new NonClassloadingClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
             classNodeBeingTransformed.accept(classWriter);
 
             return classWriter.toByteArray();
@@ -291,7 +294,7 @@ public class TransformManager {
         }
 
         try {
-            NonClassloadingClassWriter classWriter = new NonClassloadingClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
             classNode.accept(classWriter);
             byte[] classBytes = classWriter.toByteArray();
             // dump class to file
