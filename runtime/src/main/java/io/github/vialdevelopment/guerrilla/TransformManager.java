@@ -244,7 +244,7 @@ public class TransformManager {
                 dumpDebug(dumpFile, classNodeBeingTransformed);
             }
 
-            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+            ClassWriter classWriter = new ClassWriter(0);
             classNodeBeingTransformed.accept(classWriter);
 
             return classWriter.toByteArray();
@@ -283,8 +283,9 @@ public class TransformManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         StringWriter sw = new StringWriter();
+        /*
+        // TODO maybe queue up check class verify for after class is loaded?
         // write verification output to log file
         try {
             CheckClassAdapterClassNode.verify(classNode, null, true, verifyDumpFileLog);
@@ -293,8 +294,10 @@ public class TransformManager {
             e.printStackTrace();
         }
 
+         */
+
         try {
-            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+            ClassWriter classWriter = new ClassWriter(0);
             classNode.accept(classWriter);
             byte[] classBytes = classWriter.toByteArray();
             // dump class to file

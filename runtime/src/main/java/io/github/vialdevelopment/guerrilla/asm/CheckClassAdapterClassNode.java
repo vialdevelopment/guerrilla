@@ -1,7 +1,5 @@
 package io.github.vialdevelopment.guerrilla.asm;
 
-import org.mutabilitydetector.asm.tree.analysis.NonClassloadingSimpleVerifier;
-import org.mutabilitydetector.asm.typehierarchy.TypeHierarchyReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -47,13 +45,13 @@ public class CheckClassAdapterClassNode extends CheckClassAdapter {
         }
 
         for (MethodNode method : methods) {
-            NonClassloadingSimpleVerifier verifier =
-                    new NonClassloadingSimpleVerifier(
+            SimpleVerifier verifier =
+                    new SimpleVerifier(
                             Type.getObjectType(classNode.name),
                             syperType,
                             interfaces,
-                            (classNode.access & Opcodes.ACC_INTERFACE) != 0,
-                            new TypeHierarchyReader());
+                            (classNode.access & Opcodes.ACC_INTERFACE) != 0
+                            );
 
             Analyzer<BasicValue> analyzer = new Analyzer<>(verifier);
             if (loader != null) {
