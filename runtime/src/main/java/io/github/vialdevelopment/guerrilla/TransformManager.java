@@ -225,22 +225,6 @@ public class TransformManager {
                 if (transformer.equals("")) continue;
                 externalTransformersNames.add(ASMUtil.toExternalName(transformer));
             }
-            if (externalTransformersNames.size() != 0) {
-                String classBeingTransformedExternalName = ASMUtil.toExternalName(name);
-                // remap all references from the transformer to class being transformed
-                ClassNode temp = new ClassNode();
-                ClassVisitor classRemapper = new ClassRemapper(temp, new Remapper() {
-                    @Override
-                    public String map(String internalName) {
-                        if (externalTransformersNames.contains(internalName)) {
-                            return classBeingTransformedExternalName;
-                        }
-                        return internalName;
-                    }
-                });
-                classNodeBeingTransformed.accept(classRemapper);
-                classNodeBeingTransformed = temp;
-            }
 
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {
                 // we override this to make it use our class loader instead of what the ClassWriter class was loaded from
@@ -275,8 +259,18 @@ public class TransformManager {
                 }
             };
 
-            classNodeBeingTransformed.accept(classWriter);
+            // remap all references from the transformer to class being transformed
+            ClassVisitor classRemapper = new ClassRemapper(classWriter, new Remapper() {
+                @Override
+                public String map(String internalName) {
+                    if (externalTransformersNames.contains(internalName)) {
+                        return ASMUtil.toExternalName(name);
+                    }
+                    return internalName;
+                }
+            });
 
+            classNodeBeingTransformed.accept(classRemapper);
             byte[] classBytes = classWriter.toByteArray();
 
             if (ASM_DEBUG) {
