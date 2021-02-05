@@ -1,6 +1,7 @@
 package io.github.vialdevelopment.guerrilla;
 
 import io.github.vialdevelopment.guerrilla.annotation.TransformClass;
+import io.github.vialdevelopment.guerrilla.asm.CheckClassAdapterClassNode;
 import io.github.vialdevelopment.guerrilla.transform.ITransform;
 import io.github.vialdevelopment.guerrilla.transform.TransformAddInterfacesEx;
 import io.github.vialdevelopment.guerrilla.transform.TransformMethodEx;
@@ -280,22 +281,20 @@ public class TransformManager {
             return classBytes;
         } catch (Exception e) {
             e.printStackTrace();
+            dumpDebug(dumpFile, classNodeBeingTransformed);
         }
         return basicClass;
     }
 
-    public static void dumpDebug(File dumpFile, ClassNode classNode, byte[] classBytes) {
+    public static void dumpDebug(File dumpFile, ClassNode classNode) {
         File traceDumpFile = new File(dumpFile.getPath() + ".trace.dump");
         File verifyDumpFile = new File(dumpFile.getPath() + ".verify.dump");
-        File disassembleDumpFile = new File(dumpFile.getPath() + ".diss.dump");
         traceDumpFile.getParentFile().mkdirs();
         FileWriter traceFileWriter;
         FileWriter verifyFileWriter;
-        FileWriter disassembleFileWriter;
         try {
             traceFileWriter = new FileWriter(traceDumpFile);
             verifyFileWriter = new FileWriter(verifyDumpFile);
-            disassembleFileWriter = new FileWriter(disassembleDumpFile);
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -303,7 +302,6 @@ public class TransformManager {
 
         PrintWriter printDumpFileLog = new PrintWriter(traceFileWriter);
         PrintWriter verifyDumpFileLog = new PrintWriter(verifyFileWriter);
-        PrintWriter disassembleDumpFileLog = new PrintWriter(disassembleFileWriter);
 
         try {
             // write disassembly output to log file
@@ -313,12 +311,49 @@ public class TransformManager {
             e.printStackTrace();
         }
 
+        StringWriter sw = new StringWriter();
+
+        // write verification output to log file
+        try {
+            CheckClassAdapterClassNode.verify(classNode, true, verifyDumpFileLog);
+            printDumpFileLog.println(sw.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            traceFileWriter.close();
+            printDumpFileLog.close();
+            sw.close();
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    public static void dumpDebug(File dumpFile, ClassNode classNode, byte[] classBytes) {
+
+        dumpDebug(dumpFile, classNode);
+
+        File disassembleDumpFile = new File(dumpFile.getPath() + ".diss.dump");
+        disassembleDumpFile.getParentFile().mkdirs();
+        FileWriter disassembleFileWriter;
+        try {
+            disassembleFileWriter = new FileWriter(disassembleDumpFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        PrintWriter disassembleDumpFileLog = new PrintWriter(disassembleFileWriter);
+
         try {
             // dump class to file
             new FileOutputStream(dumpFile).write(classBytes);
         } catch (IOException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
         }
+
+        StringWriter sw = new StringWriter();
 
         try {
             Process process = Runtime.getRuntime().exec(new String[]{"javap", "-c", "-p", dumpFile.toString()});
@@ -332,9 +367,8 @@ public class TransformManager {
         }
 
         try {
-            traceFileWriter.close();
-            printDumpFileLog.close();
             disassembleDumpFileLog.close();
+            sw.close();
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }

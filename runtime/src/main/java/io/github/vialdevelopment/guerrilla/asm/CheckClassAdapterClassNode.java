@@ -1,8 +1,6 @@
 package io.github.vialdevelopment.guerrilla.asm;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
@@ -12,7 +10,6 @@ import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CheckClassAdapterClassNode extends CheckClassAdapter {
@@ -25,38 +22,21 @@ public class CheckClassAdapterClassNode extends CheckClassAdapter {
      * Checks the given class.
      *
      * @param classNode the class to be checked.
-     * @param loader a <code>ClassLoader</code> which will be used to load referenced classes. May be
-     *     {@literal null}.
      * @param printResults whether to print the results of the bytecode verification.
      * @param printWriter where the results (or the stack trace in case of error) must be printed.
      */
     public static void verify(
             final ClassNode classNode,
-            final ClassLoader loader,
             final boolean printResults,
             final PrintWriter printWriter) {
 
-        Type syperType = classNode.superName == null ? null : Type.getObjectType(classNode.superName);
         List<MethodNode> methods = classNode.methods;
 
-        List<Type> interfaces = new ArrayList<>();
-        for (String interfaceName : classNode.interfaces) {
-            interfaces.add(Type.getObjectType(interfaceName));
-        }
-
         for (MethodNode method : methods) {
-            SimpleVerifier verifier =
-                    new SimpleVerifier(
-                            Type.getObjectType(classNode.name),
-                            syperType,
-                            interfaces,
-                            (classNode.access & Opcodes.ACC_INTERFACE) != 0
-                            );
+            BasicVerifier verifier =
+                    new BasicVerifier();
 
             Analyzer<BasicValue> analyzer = new Analyzer<>(verifier);
-            if (loader != null) {
-                verifier.setClassLoader(loader);
-            }
             try {
                 analyzer.analyze(classNode.name, method);
             } catch (AnalyzerException e) {
