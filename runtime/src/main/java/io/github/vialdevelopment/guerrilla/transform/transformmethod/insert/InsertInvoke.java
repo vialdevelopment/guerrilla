@@ -5,11 +5,8 @@ import io.github.vialdevelopment.guerrilla.ASMUtil;
 import io.github.vialdevelopment.guerrilla.Pattern;
 import io.github.vialdevelopment.guerrilla.annotation.insert.At;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import static io.github.vialdevelopment.guerrilla.TransformManager.OBF;
 import static org.objectweb.asm.Opcodes.*;

@@ -1,13 +1,10 @@
 package io.github.vialdevelopment.guerrilla;
 
-import org.objectweb.asm.*;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
-import org.objectweb.asm.tree.analysis.Analyzer;
-import org.objectweb.asm.tree.analysis.Frame;
-import org.objectweb.asm.tree.analysis.SourceInterpreter;
-import org.objectweb.asm.tree.analysis.SourceValue;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -209,16 +206,15 @@ public class ASMUtil {
                 int parameters = 0;
                 for (Type argumentType : Type.getArgumentTypes(hookMethod.desc)) parameters += argumentType.getSize();
 
-                {
-                    // shift down all var insn as 0 is 1st arg in static
-                    for (AbstractInsnNode instruction : hookMethod.instructions) {
-                        if (instruction instanceof VarInsnNode) {
-                            ((VarInsnNode) instruction).var += ((VarInsnNode) instruction).var < parameters ? -1 : 1;
-                        } else if (instruction instanceof IincInsnNode) {
-                            ((IincInsnNode) instruction).var = ((IincInsnNode) instruction).var < parameters ? -1 : 1;
-                        }
+                // shift down all var insn as 0 is 1st arg in static
+                int finalParameters = parameters;
+                hookMethod.accept(new MethodVisitor(ASM5) {
+                    @Override
+                    public void visitVarInsn(int opcode, int var) {
+                        var += var < finalParameters ? -1 : 1;
+                        super.visitVarInsn(opcode, var);
                     }
-                }
+                });
 
                 // replaces references to this with references to last parameter
                 // this shouldn't happen if caller was static
@@ -243,14 +239,24 @@ public class ASMUtil {
     public static void prepareMethodForInsertion(MethodNode insertedIntoMethod, MethodNode methodNode, ASMFactory.EReturnTypes returnType) {
         // fixing up the variable references to prevent conflicts works
 
-        int maxVar = 0;
+        final int[] maxVar = {0};
         for (AbstractInsnNode instruction : insertedIntoMethod.instructions) {
             if (instruction instanceof VarInsnNode) {
-                if (((VarInsnNode) instruction).var > maxVar) {
-                    maxVar = ((VarInsnNode) instruction).var;
+                if (((VarInsnNode) instruction).var > maxVar[0]) {
+                    maxVar[0] = ((VarInsnNode) instruction).var;
                 }
             }
         }
+
+        insertedIntoMethod.accept(new MethodVisitor(ASM5) {
+            @Override
+            public void visitVarInsn(int opcode, int var) {
+                if (var > maxVar[0]) {
+                    maxVar[0] = var;
+                }
+                super.visitVarInsn(opcode, var);
+            }
+        });
 
         int parameters = Arrays.stream(Type.getArgumentTypes(insertedIntoMethod.desc)).mapToInt(Type::getSize).sum();
         // decrement parameters if static
@@ -259,7 +265,7 @@ public class ASMUtil {
         {
             // finally, fix all var references that aren't to this or parameters
             int finalParameters = parameters;
-            int finalMaxVar = maxVar;
+            int finalMaxVar = maxVar[0];
             methodNode.accept(new MethodVisitor(ASM5) {
                 @Override
                 public void visitVarInsn(int opcode, int var) {
@@ -313,44 +319,14 @@ public class ASMUtil {
     }
 
     /**
-     * Gets all the instructions needed to load a number of args to the function
-     * @param classNodeName class node
-     * @param methodNode method node
-     * @param functionCall call to search before
-     * @param loads number of loaded
-     * @return instructions list of arg loaders
-     */
-    public static List<AbstractInsnNode> getParameterLoadingInstructions(String classNodeName, MethodNode methodNode, MethodInsnNode functionCall, int loads) {
-
-        Analyzer<SourceValue> analyzer = new Analyzer<>(new SourceInterpreter());
-
-        try {
-            analyzer.analyze(classNodeName, methodNode);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        Frame<SourceValue>[] frames = analyzer.getFrames();
-        int end = methodNode.instructions.indexOf(functionCall);
-        Frame<SourceValue> sourceValueFrame = frames[end];
-        SourceValue receiver = sourceValueFrame.getStack(sourceValueFrame.getStackSize() - loads - 1);
-        return new ArrayList<>(receiver.insns);
-    }
-
-    /**
      * Finds the first equal node in the list
      * @param instructions instructions list
      * @param toFind equal node to find
      * @return node found or null
      */
     public static AbstractInsnNode findFirstEqual(InsnList instructions, AbstractInsnNode toFind) {
-        AbstractInsnNode current = instructions.getFirst();
-        for (int i = 0; i < instructions.size()-1; i++) {
-            if (equalIns(current, toFind)) {
-                return current;
-            }
-            current = current.getNext();
+        for (AbstractInsnNode instruction : instructions) {
+            if (equalIns(instruction, toFind)) return instruction;
         }
         return null;
     }

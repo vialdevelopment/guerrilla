@@ -244,7 +244,7 @@ public class TransformManager {
                 dumpDebug(dumpFile, classNodeBeingTransformed);
             }
 
-            ClassWriter classWriter = new ClassWriter(0);
+            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
             classNodeBeingTransformed.accept(classWriter);
 
             return classWriter.toByteArray();
