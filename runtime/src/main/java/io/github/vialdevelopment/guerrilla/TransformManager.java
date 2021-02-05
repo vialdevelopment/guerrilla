@@ -1,7 +1,6 @@
 package io.github.vialdevelopment.guerrilla;
 
 import io.github.vialdevelopment.guerrilla.annotation.TransformClass;
-import io.github.vialdevelopment.guerrilla.asm.CheckClassAdapterClassNode;
 import io.github.vialdevelopment.guerrilla.transform.ITransform;
 import io.github.vialdevelopment.guerrilla.transform.TransformAddInterfacesEx;
 import io.github.vialdevelopment.guerrilla.transform.TransformMethodEx;
@@ -35,6 +34,8 @@ public class TransformManager {
 
     public static boolean OBF = false;
 
+    public static ClassLoader classLoader = TransformManager.class.getClassLoader();
+
     public static boolean ASM_DEBUG = Boolean.parseBoolean(System.getProperty("guerrilla.asmdebug", "false"));
 
     private static final Map<String, List<String>> transformMap = new HashMap<>();
@@ -51,6 +52,7 @@ public class TransformManager {
             Class.forName("net.minecraft.launchwrapper.Launch", false, TransformManager.class.getClassLoader());
             if (Launch.blackboard != null) {
                 OBF = !(Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
+                classLoader = Launch.classLoader;
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -240,22 +242,55 @@ public class TransformManager {
                 classNodeBeingTransformed = temp;
             }
 
-            if (ASM_DEBUG) {
-                dumpDebug(dumpFile, classNodeBeingTransformed);
-            }
+            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {
+                // we override this to make it use our class loader instead of what the ClassWriter class was loaded from
+                @Override
+                protected String getCommonSuperClass(String type1, String type2) {
+                    Class<?> class1;
+                    try {
+                        class1 = classLoader.loadClass(type1.replace('/', '.'));
+                    } catch (ClassNotFoundException e) {
+                        throw new TypeNotPresentException(type1, e);
+                    }
+                    Class<?> class2;
+                    try {
+                        class2 = classLoader.loadClass(type2.replace('/', '.'));
+                    } catch (ClassNotFoundException e) {
+                        throw new TypeNotPresentException(type2, e);
+                    }
+                    if (class1.isAssignableFrom(class2)) {
+                        return type1;
+                    }
+                    if (class2.isAssignableFrom(class1)) {
+                        return type2;
+                    }
+                    if (class1.isInterface() || class2.isInterface()) {
+                        return "java/lang/Object";
+                    } else {
+                        do {
+                            class1 = class1.getSuperclass();
+                        } while (!class1.isAssignableFrom(class2));
+                        return class1.getName().replace('.', '/');
+                    }
+                }
+            };
 
-            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
             classNodeBeingTransformed.accept(classWriter);
 
-            return classWriter.toByteArray();
+            byte[] classBytes = classWriter.toByteArray();
+
+            if (ASM_DEBUG) {
+                dumpDebug(dumpFile, classNodeBeingTransformed, classBytes);
+            }
+
+            return classBytes;
         } catch (Exception e) {
             e.printStackTrace();
-            dumpDebug(dumpFile, classNodeBeingTransformed);
         }
         return basicClass;
     }
 
-    public static void dumpDebug(File dumpFile, ClassNode classNode) {
+    public static void dumpDebug(File dumpFile, ClassNode classNode, byte[] classBytes) {
         File traceDumpFile = new File(dumpFile.getPath() + ".trace.dump");
         File verifyDumpFile = new File(dumpFile.getPath() + ".verify.dump");
         File disassembleDumpFile = new File(dumpFile.getPath() + ".diss.dump");
@@ -283,23 +318,8 @@ public class TransformManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        StringWriter sw = new StringWriter();
-        /*
-        // TODO maybe queue up check class verify for after class is loaded?
-        // write verification output to log file
-        try {
-            CheckClassAdapterClassNode.verify(classNode, null, true, verifyDumpFileLog);
-            printDumpFileLog.println(sw.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-         */
 
         try {
-            ClassWriter classWriter = new ClassWriter(0);
-            classNode.accept(classWriter);
-            byte[] classBytes = classWriter.toByteArray();
             // dump class to file
             new FileOutputStream(dumpFile).write(classBytes);
         } catch (IOException fileNotFoundException) {
@@ -321,8 +341,6 @@ public class TransformManager {
             traceFileWriter.close();
             printDumpFileLog.close();
             disassembleDumpFileLog.close();
-            sw.close();
-
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
