@@ -207,14 +207,10 @@ public class ASMUtil {
                 for (Type argumentType : Type.getArgumentTypes(hookMethod.desc)) parameters += argumentType.getSize();
 
                 // shift down all var insn as 0 is 1st arg in static
-                int finalParameters = parameters;
-                hookMethod.accept(new MethodVisitor(ASM5) {
-                    @Override
-                    public void visitVarInsn(int opcode, int var) {
-                        var += var < finalParameters ? -1 : 1;
-                        super.visitVarInsn(opcode, var);
-                    }
-                });
+                for (AbstractInsnNode instruction : hookMethod.instructions) {
+                    if (instruction instanceof VarInsnNode) ((VarInsnNode) instruction).var += ((VarInsnNode) instruction).var < parameters ? -1 : 1;
+                    else if (instruction instanceof IincInsnNode) ((IincInsnNode) instruction).var += ((IincInsnNode) instruction).var < parameters ? -1 : 1;
+                }
 
                 // replaces references to this with references to last parameter
                 // this shouldn't happen if caller was static
@@ -240,21 +236,11 @@ public class ASMUtil {
         // fixing up the variable references to prevent conflicts works
 
         final int[] maxVar = {0};
-        for (AbstractInsnNode instruction : insertedIntoMethod.instructions) {
-            if (instruction instanceof VarInsnNode) {
-                if (((VarInsnNode) instruction).var > maxVar[0]) {
-                    maxVar[0] = ((VarInsnNode) instruction).var;
-                }
-            }
-        }
 
         insertedIntoMethod.accept(new MethodVisitor(ASM5) {
             @Override
             public void visitVarInsn(int opcode, int var) {
-                if (var > maxVar[0]) {
-                    maxVar[0] = var;
-                }
-                super.visitVarInsn(opcode, var);
+                maxVar[0] = Math.max(maxVar[0], var);
             }
         });
 
@@ -262,17 +248,10 @@ public class ASMUtil {
         // decrement parameters if static
         parameters = (insertedIntoMethod.access & Opcodes.ACC_STATIC) != 0 ? parameters - 1 : parameters;
 
-        {
-            // finally, fix all var references that aren't to this or parameters
-            int finalParameters = parameters;
-            int finalMaxVar = maxVar[0];
-            methodNode.accept(new MethodVisitor(ASM5) {
-                @Override
-                public void visitVarInsn(int opcode, int var) {
-                    if (var > finalParameters) var += finalMaxVar;
-                    super.visitVarInsn(opcode, var);
-                }
-            });
+        // finally, fix all var references that aren't to this or parameters
+        for (AbstractInsnNode instruction : methodNode.instructions) {
+            if (instruction instanceof VarInsnNode && ((VarInsnNode) instruction).var > parameters) ((VarInsnNode) instruction).var += maxVar[0];
+            if (instruction instanceof IincInsnNode && ((IincInsnNode) instruction).var > parameters) ((IincInsnNode) instruction).var += maxVar[0];
         }
 
         prepareMethodForInsertion(methodNode, returnType);
