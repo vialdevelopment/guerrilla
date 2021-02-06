@@ -95,15 +95,26 @@ public class CreatePublicJar extends DefaultTask {
                                 inheritanceMap.put(MiscUtil.toNormalName(classNode.name, makePublics), MiscUtil.toNormalName(classNode.superName, makePublics));
 
                                 // make everything public
-                                for (MethodNode method : classNode.methods) {
-                                    method.access = (method.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
-                                    method.access = (method.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
-                                }
-                                for (FieldNode field : classNode.fields) {
-                                    field.access = (field.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
-                                    field.access = (field.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
-                                    field.access = (field.access & (~ACC_FINAL));
-                                }
+                                classNode.access = (classNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
+                                classNode.access = (classNode.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
+                                classNode.access = classNode.access & (~ACC_FINAL);
+
+                                classNode.innerClasses.forEach(innerClassNode -> {
+                                    innerClassNode.access = (innerClassNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
+                                    innerClassNode.access = (innerClassNode.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
+                                    innerClassNode.access = innerClassNode.access & (~ACC_FINAL);
+                                });
+
+                                classNode.methods.forEach(methodNode -> {
+                                    methodNode.access = (methodNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
+                                    methodNode.access = (methodNode.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
+                                    methodNode.access = methodNode.access & (~ACC_FINAL);
+                                });
+                                classNode.fields.forEach(fieldNode -> {
+                                    fieldNode.access = (fieldNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
+                                    fieldNode.access = (fieldNode.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
+                                    fieldNode.access = fieldNode.access & (~ACC_FINAL);
+                                });
 
                                 ClassWriter classWriter = new ClassWriter(0);
                                 classNode.accept(classWriter);

@@ -189,6 +189,51 @@ public class ASMUtil {
     }
 
     /**
+     * Makes the class accessible and overridable with its contents everywhere
+     * @param classNode class
+     */
+    public static void makeClassPublic(ClassNode classNode) {
+        classNode.access = (classNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
+        classNode.access = (classNode.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
+        classNode.access = classNode.access & (~ACC_FINAL);
+
+        classNode.methods.forEach(ASMUtil::makeMethodPublic);
+        classNode.fields.forEach(ASMUtil::makeFieldPublic);
+
+        classNode.innerClasses.forEach(ASMUtil::makeInnerClassPublic);
+    }
+
+    /**
+     * Makes the inner class accessible with its contents everywhere
+     * @param innerClassNode inner class
+     */
+    public static void makeInnerClassPublic(InnerClassNode innerClassNode) {
+        innerClassNode.access = (innerClassNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
+        innerClassNode.access = (innerClassNode.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
+        innerClassNode.access = innerClassNode.access & (~ACC_FINAL);
+    }
+
+    /**
+     * Makes the method accessible and overridable everywhere
+     * @param methodNode method
+     */
+    public static void makeMethodPublic(MethodNode methodNode) {
+        methodNode.access = (methodNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
+        methodNode.access = (methodNode.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
+        methodNode.access = methodNode.access & (~ACC_FINAL);
+    }
+
+    /**
+     * Makes the field accessible and writable everywhere
+     * @param fieldNode field
+     */
+    public static void makeFieldPublic(FieldNode fieldNode) {
+        fieldNode.access = (fieldNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
+        fieldNode.access = (fieldNode.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
+        fieldNode.access = fieldNode.access & (~ACC_FINAL);
+    }
+
+    /**
      * Makes the hook method static, by appending a "this" parameter onto the end
      * @param classCalledFrom the class the hook method is called from
      * @param methodCalledFrom the method the hook method is called from

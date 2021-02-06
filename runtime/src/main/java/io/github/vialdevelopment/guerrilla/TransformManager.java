@@ -209,18 +209,8 @@ public class TransformManager {
 
             // make everything public and fields non-final, needed so that hooks have access to everything
             // this is done regardless if there was a transformer class for this class
+            ASMUtil.makeClassPublic(classNodeBeingTransformed);
 
-            for (MethodNode method : classNodeBeingTransformed.methods) {
-                method.access = (method.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
-                method.access = (method.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
-            }
-            for (FieldNode field : classNodeBeingTransformed.fields) {
-                field.access = (field.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
-                field.access = (field.access & (~ACC_PROTECTED)) | ACC_PUBLIC;
-                field.access = (field.access & (~ACC_FINAL));
-            }
-
-            // only need to fix references if there was a transformer
             List<String> externalTransformersNames = new ArrayList<>();
             for (String transformer : transformers) {
                 if (transformer.equals("")) continue;
