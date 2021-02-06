@@ -62,13 +62,11 @@ public class FixTransformerClasses extends DefaultTask {
                         remapTransformFieldAccess(classNode, deobfClassName);
                         removeTransformIgnores(classNode);
                         removeInits(classNode);
-                        classNode = remapReferences(classNode, deobfClassName);
 
                         // write the transformed transformer back
                         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
                         classNode.accept(classWriter);
                         Files.write(path, classWriter.toByteArray());
-
                     }
 
                 } catch (IOException e) {
@@ -222,25 +220,4 @@ public class FixTransformerClasses extends DefaultTask {
             }
         }
     }
-
-    private ClassNode remapReferences(ClassNode classNode, String className) {
-        // remap all references from the transformer to class being transformed
-        className = className.replace('.', '/');
-        ClassNode temp = new ClassNode();
-        String originalTransformerName = classNode.name;
-        String finalClassName = className;
-        ClassVisitor classRemapper = new ClassRemapper(temp, new Remapper() {
-            @Override
-            public String map(String internalName) {
-                if (internalName.equals(originalTransformerName)) {
-                    return finalClassName;
-                }
-                return internalName;
-            }
-        });
-        classNode.accept(classRemapper);
-        temp.name = originalTransformerName;
-        return temp;
-    }
-
 }
