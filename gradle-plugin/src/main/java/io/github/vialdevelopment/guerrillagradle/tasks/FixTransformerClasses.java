@@ -6,7 +6,10 @@ import io.github.vialdevelopment.guerrillagradle.util.MiscUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.commons.ClassRemapper;
+import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -64,9 +67,9 @@ public class FixTransformerClasses extends DefaultTask {
                         remapTransformFieldAccess(classNode, deobfClassName);
                         removeTransformIgnores(classNode);
 
-                        // write the transformed transformer back
                         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-                        classNode.accept(classWriter);
+                        remapReferences(classNode, classWriter, deobfClassName);
+                        // write the transformed transformer back
                         Files.write(path, classWriter.toByteArray());
                     }
 
@@ -212,6 +215,26 @@ public class FixTransformerClasses extends DefaultTask {
                 iterator.remove();
             }
         }
+    }
+
+    private void remapReferences(ClassNode classNode, ClassVisitor classVisitor, String className) {
+        // remap all references from the transformer to class being transformed
+        className = className.replace('.', '/');
+        String originalTransformerName = classNode.name;
+        String finalClassName = className;
+        ClassVisitor classRemapper = new ClassRemapper(classVisitor, new Remapper() {
+            @Override
+            public String map(String internalName) {
+                return internalName.equals(originalTransformerName) ? finalClassName : internalName;
+            }
+        }) {
+            // overridden to not remap transformer class name
+            @Override
+            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                cv.visit(version, access, name, remapper.mapSignature(signature, false), remapper.mapType(superName), interfaces == null ? null : remapper.mapTypes(interfaces));
+            }
+        };
+        classNode.accept(classRemapper);
     }
 
 }
