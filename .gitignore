@@ -1,9 +1,6 @@
 /.gradle/
 /.idea/
-/gradle/wrapper/gradle-wrapper.jar
 /gradle-plugin/.idea/
 /gradle-plugin/build/
-/gradle-plugin/gradle/wrapper/gradle-wrapper.jar
 /runtime/.idea/
 /runtime/build/
-/runtime/gradle/wrapper/gradle-wrapper.jar
