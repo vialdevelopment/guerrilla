@@ -67,7 +67,7 @@ public class FixTransformerClasses extends DefaultTask {
                         remapTransformFieldAccess(classNode, deobfClassName);
                         removeTransformIgnores(classNode);
 
-                        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+                        ClassWriter classWriter = new ClassWriter(0);
                         remapReferences(classNode, classWriter, deobfClassName);
                         // write the transformed transformer back
                         Files.write(path, classWriter.toByteArray());
