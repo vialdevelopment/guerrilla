@@ -5,8 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -88,6 +87,8 @@ public class ASMUtil {
      * @return equal
      */
     public static boolean equalIns(AbstractInsnNode node, AbstractInsnNode node2) {
+        if (node == null || node2 == null) return false;
+
         if (node.getOpcode() != node2.getOpcode()) return false;
 
         if (node instanceof FieldInsnNode) {
@@ -120,7 +121,7 @@ public class ASMUtil {
 
         } else if (node instanceof LabelNode) {
 
-            return ((LabelNode) node).getLabel().getOffset() == ((LabelNode) node2).getLabel().getOffset();
+            return true;
 
         } else if (node instanceof LdcInsnNode) {
 
@@ -343,6 +344,64 @@ public class ASMUtil {
     }
 
     /**
+     * Removes debug info such as frame nodes and line number nodes
+     * @param insnList insn list
+     */
+    public static void removeDebugInfo(InsnList insnList) {
+        for (AbstractInsnNode abstractInsnNode : insnList) {
+            if (abstractInsnNode instanceof FrameNode ||
+                    abstractInsnNode instanceof LineNumberNode) insnList.remove(abstractInsnNode);
+        }
+    }
+
+    /**
+     * Finds the first init call to super in an insn list
+     * @param insnList insnList
+     * @param superName super name
+     * @return first init call
+     */
+    public static AbstractInsnNode findCallToSuperInit(InsnList insnList, String superName) {
+        for (AbstractInsnNode instruction : insnList) {
+            if (instruction instanceof MethodInsnNode) {
+                if (((MethodInsnNode) instruction).owner.equals(superName) && ((MethodInsnNode) instruction).name.equals("<init>")) {
+                    return instruction;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public static Pattern findAllBeginningEqualAfterSuper(String superName, InsnList... insnList) {
+        Map<InsnList, AbstractInsnNode> superCalls = new HashMap<>();
+        for (InsnList abstractInsnNodes : insnList) {
+            superCalls.put(abstractInsnNodes, findCallToSuperInit(abstractInsnNodes, superName));
+        }
+        List<AbstractInsnNode> currents = new ArrayList<>();
+
+        superCalls.forEach(((insnList1, abstractInsnNode) -> currents.add(abstractInsnNode)));
+
+        boolean equal = true;
+        while (equal) {
+            for (int i = 0; i < currents.size() - 1; i++) {
+                if (!equalIns(currents.get(i), currents.get(i + 1))) {
+                    equal = false;
+                    break;
+                }
+            }
+            for (int i = 0; i < currents.size(); i++) {
+                if (currents.get(i).getNext() == null) {
+                    equal = false;
+                    break;
+                }
+                currents.set(i, currents.get(i).getNext());
+            }
+        }
+
+        return getBetween(superCalls.get(insnList[0]).getNext(), currents.get(0));
+    }
+
+    /**
      * Finds the first equal node in the list
      * @param instructions instructions list
      * @param toFind equal node to find
@@ -353,6 +412,23 @@ public class ASMUtil {
             if (equalIns(instruction, toFind)) return instruction;
         }
         return null;
+    }
+
+    /**
+     * Gets all insn nodes in between, including the first and last
+     * @param first first node
+     * @param last last node
+     * @return in between nodes
+     */
+    public static Pattern getBetween(AbstractInsnNode first, AbstractInsnNode last) {
+        List<AbstractInsnNode> between = new ArrayList<>();
+        AbstractInsnNode current = first;
+        while (current != null && !current.equals(last)) {
+            between.add(current);
+            current = current.getNext();
+        }
+        between.add(last);
+        return new Pattern(between);
     }
 
 }

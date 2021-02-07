@@ -12,11 +12,13 @@ import java.util.List;
  */
 public class InlineTransformMethod implements ITransformMethod {
 
-    private static final List<EAnnotationsUsed> annotations = new ArrayList<>();
+    private final List<EAnnotationsUsed> annotations = new ArrayList<>();
 
     @Override
     public void insert(ClassNode classBeingTransformed, ClassNode transformerClass, MethodNode methodBeingTransformed, MethodNode transformerMethod, ASMAnnotation... insertAnnotation) {
-        classBeingTransformed.methods.add(transformerMethod);
+        if (!transformerMethod.name.equals("<init>")) { // we handle <init> later
+            classBeingTransformed.methods.add(transformerMethod);
+        }
     }
 
     @Override

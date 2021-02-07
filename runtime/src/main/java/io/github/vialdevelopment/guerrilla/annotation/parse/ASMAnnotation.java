@@ -1,6 +1,7 @@
 package io.github.vialdevelopment.guerrilla.annotation.parse;
 
 import org.objectweb.asm.tree.AnnotationNode;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -15,8 +16,10 @@ import java.util.Map;
 public class ASMAnnotation {
     /** annotation desc */
     public String desc;
-    /** annotaion values */
+    /** annotation values */
     public Map<String, Object> values = new HashMap<>();
+    /** original annotation node */
+    private AnnotationNode annotationNode;
 
     /**
      * Constructs this annotation
@@ -33,6 +36,7 @@ public class ASMAnnotation {
                 this.values.put((String) annotationNode.values.get(i), value);
             }
         }
+        this.annotationNode = annotationNode;
     }
 
     /**
@@ -44,8 +48,14 @@ public class ASMAnnotation {
         newAnnotationNode.values = new ArrayList<>();
         values.forEach((key, value) -> {
             newAnnotationNode.values.add(key);
-            newAnnotationNode.values.add(value);
+            if (value instanceof ASMAnnotation) {
+                newAnnotationNode.values.add(((ASMAnnotation) value).write());
+            } else {
+                newAnnotationNode.values.add(value);
+            }
         });
+        this.annotationNode.desc = newAnnotationNode.desc;
+        this.annotationNode.values = newAnnotationNode.values;
         return newAnnotationNode;
     }
 
@@ -59,6 +69,15 @@ public class ASMAnnotation {
     }
 
     /**
+     * Adds the annotation value
+     * @param name name
+     * @param value value
+     */
+    public void put(String name, Object value) {
+        values.put(name, value);
+    }
+
+    /**
      * Gets the annotation of that type in the list of annotations
      * @param annotations annotations list
      * @param clazz annotation class
@@ -66,12 +85,42 @@ public class ASMAnnotation {
      */
     public static ASMAnnotation getAnnotation(List<AnnotationNode> annotations, Class<?> clazz) {
         String annotationDesc = "L" + clazz.getName().replace('.', '/') + ";";
+        return getAnnotation(annotations, annotationDesc);
+    }
+
+    /**
+     * Gets the annotation of that type in the list of annotations
+     * @param annotations annotations list
+     * @param annotationDesc annotation class descriptor
+     * @return annotation or null
+     */
+    public static ASMAnnotation getAnnotation(List<AnnotationNode> annotations, String annotationDesc) {
         for (AnnotationNode annotation : annotations) {
             if (annotation.desc.equals(annotationDesc)) {
                 return new ASMAnnotation(annotation);
             }
         }
         return null;
+    }
+
+    /**
+     * Gets the annotation on the class node
+     * @param classNode class node
+     * @param clazz annotation class
+     * @return
+     */
+    public static ASMAnnotation getAnnotation(ClassNode classNode, Class<?> clazz) {
+        return getAnnotation(combineAnnotationLists(classNode.visibleAnnotations, classNode.invisibleAnnotations), clazz);
+    }
+
+    /**
+     * Gets the annotation on the class node
+     * @param classNode class node
+     * @param annotationDesc annotation class desc
+     * @return
+     */
+    public static ASMAnnotation getAnnotation(ClassNode classNode, String annotationDesc) {
+        return getAnnotation(combineAnnotationLists(classNode.visibleAnnotations, classNode.invisibleAnnotations), annotationDesc);
     }
 
     /**
@@ -85,6 +134,16 @@ public class ASMAnnotation {
     }
 
     /**
+     * Gets the annotation on the field node
+     * @param fieldNode field node
+     * @param annotationDesc annotation class desc
+     * @return annotation or null
+     */
+    public static ASMAnnotation getAnnotation(FieldNode fieldNode, String annotationDesc) {
+        return getAnnotation(combineAnnotationLists(fieldNode.visibleAnnotations, fieldNode.invisibleAnnotations), annotationDesc);
+    }
+
+    /**
      * Gets the annotation on the method node
      * @param methodNode method node
      * @param clazz annotation class
@@ -92,6 +151,16 @@ public class ASMAnnotation {
      */
     public static ASMAnnotation getAnnotation(MethodNode methodNode, Class<?> clazz) {
         return getAnnotation(combineAnnotationLists(methodNode.visibleAnnotations, methodNode.invisibleAnnotations), clazz);
+    }
+
+    /**
+     * Gets the annotation on the method node
+     * @param methodNode method node
+     * @param annotationDesc annotation class desc
+     * @return annotation or null
+     */
+    public static ASMAnnotation getAnnotation(MethodNode methodNode, String annotationDesc) {
+        return getAnnotation(combineAnnotationLists(methodNode.visibleAnnotations, methodNode.invisibleAnnotations), annotationDesc);
     }
 
     public static List<AnnotationNode> combineAnnotationLists(List<AnnotationNode> annotations1, List<AnnotationNode> annotations2) {

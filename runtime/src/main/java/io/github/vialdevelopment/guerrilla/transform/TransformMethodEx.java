@@ -3,6 +3,7 @@ package io.github.vialdevelopment.guerrilla.transform;
 import io.github.vialdevelopment.guerrilla.annotation.Overwrite;
 import io.github.vialdevelopment.guerrilla.annotation.TransformIgnoreInline;
 import io.github.vialdevelopment.guerrilla.annotation.TransformMethod;
+import io.github.vialdevelopment.guerrilla.annotation.info.TransformerExtends;
 import io.github.vialdevelopment.guerrilla.annotation.insert.Insert;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
 import io.github.vialdevelopment.guerrilla.transform.transformmethod.*;
@@ -16,11 +17,12 @@ import static io.github.vialdevelopment.guerrilla.TransformManager.OBF;
 
 public class TransformMethodEx implements ITransform {
 
-    private static final ITransformMethod[] transforms = new ITransformMethod[] { new ASMTransformMethod(), new InlineTransformMethod(), new InsertTransformMethod(), new OverwriteTransformMethod() };
+    private static final ITransformMethod[] transforms = new ITransformMethod[] { new ASMTransformMethod(), new InlineTransformMethod(), new InsertTransformMethod(), new OverwriteTransformMethod(), new InlineInitMethod() };
 
     @Override
-    public void transform(ClassNode classBeingTransformed, ClassNode transformerNode) {
-        for (MethodNode transformerMethod : transformerNode.methods) {
+    public void transform(ClassNode classBeingTransformed, ClassNode transformerClass) {
+        ASMAnnotation transformerExtendsAnnotation = ASMAnnotation.getAnnotation(transformerClass, TransformerExtends.class);
+        for (MethodNode transformerMethod : transformerClass.methods) {
             ASMAnnotation transformMethodAnnotation = ASMAnnotation.getAnnotation(transformerMethod, TransformMethod.class);
             ASMAnnotation insertAnnotation = ASMAnnotation.getAnnotation(transformerMethod, Insert.class);
             ASMAnnotation overwriteAnnotation = ASMAnnotation.getAnnotation(transformerMethod, Overwrite.class);
@@ -48,15 +50,19 @@ public class TransformMethodEx implements ITransform {
             if (insertAnnotation != null) annotationsUsedList.add(EAnnotationsUsed.INSERT);
             if (overwriteAnnotation != null) annotationsUsedList.add(EAnnotationsUsed.OVERWRITE);
             if (ignoreInlineAnnotation != null) annotationsUsedList.add(EAnnotationsUsed.IGNORE_INLINE);
+
             for (ITransformMethod transform : transforms) {
                 List<EAnnotationsUsed> transformAnnotations = transform.getAnnotations();
                 if (annotationsUsedList.size() != transformAnnotations.size()) continue;
                 if (transformAnnotations.containsAll(annotationsUsedList) && annotationsUsedList.containsAll(transformAnnotations)) {
-                    transform.insert(classBeingTransformed, transformerNode, methodBeingTransformed, transformerMethod, transformMethodAnnotation, insertAnnotation, overwriteAnnotation, ignoreInlineAnnotation);
+                    transform.insert(classBeingTransformed, transformerClass, methodBeingTransformed, transformerMethod, transformMethodAnnotation, insertAnnotation, overwriteAnnotation, transformerExtendsAnnotation);
                 }
             }
         }
 
+        for (ITransformMethod transform : transforms) {
+            transform.end(classBeingTransformed, transformerClass);
+        }
     }
 
 }

@@ -2,13 +2,12 @@ package io.github.vialdevelopment.guerrillagradle.tasks;
 
 import io.github.vialdevelopment.guerrillagradle.Mapper;
 import io.github.vialdevelopment.guerrillagradle.util.ASMAnnotation;
+import io.github.vialdevelopment.guerrillagradle.util.MiscUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.commons.ClassRemapper;
-import org.objectweb.asm.commons.Remapper;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -18,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -35,6 +35,8 @@ public class FixTransformerClasses extends DefaultTask {
     public TreeSet<String> alreadyUsedTransformers;
     /** classes transformers are transforming */
     public Map<String, String> transformersTransforming;
+    /** make publics list */
+    public List<String> makePublics;
 
     @TaskAction
     public void transform() {
@@ -61,7 +63,6 @@ public class FixTransformerClasses extends DefaultTask {
                         remapMethodRedirects(classNode);
                         remapTransformFieldAccess(classNode, deobfClassName);
                         removeTransformIgnores(classNode);
-                        removeInits(classNode);
 
                         // write the transformed transformer back
                         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -84,7 +85,12 @@ public class FixTransformerClasses extends DefaultTask {
      * @param classNode class node
      */
     private void removeSuper(ClassNode classNode) {
-        classNode.superName = "java/lang/Object";
+        if (!classNode.superName.equals("java/lang/Object")) {
+            AnnotationNode transformExtendsAnnotation = new AnnotationNode("Lio/github/vialdevelopment/guerrilla/annotation/info/TransformerExtends;");
+            transformExtendsAnnotation.visit("clazz", MiscUtil.toNormalName(classNode.superName, makePublics));
+            classNode.visibleAnnotations.add(transformExtendsAnnotation);
+            classNode.superName = "java/lang/Object";
+        }
     }
 
     /**
@@ -208,16 +214,4 @@ public class FixTransformerClasses extends DefaultTask {
         }
     }
 
-    /**
-     * Removes the <init> and <clinit> of this class node
-     * @param classNode class node
-     */
-    private void removeInits(ClassNode classNode) {
-        for (Iterator<MethodNode> iterator = classNode.methods.iterator(); iterator.hasNext(); ) {
-            MethodNode method = iterator.next();
-            if (method.name.equals("<init>") || method.name.equals("<clinit>")) {
-                iterator.remove();
-            }
-        }
-    }
 }

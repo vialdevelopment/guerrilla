@@ -174,6 +174,16 @@ public class Pattern {
     }
 
     /**
+     * Inserts this patten before last instruction matching
+     * @param instructions insn list to operate on
+     * @param toInsertBeforeLast instruction to match
+     */
+    public void insertBeforeLast(InsnList instructions, AbstractInsnNode toInsertBeforeLast) {
+        List<List<AbstractInsnNode>> lists = new Pattern(toInsertBeforeLast).match(instructions);
+        this.clone().insertBefore(instructions, lists.get(lists.size()-1).get(0));
+    }
+
+    /**
      * Inserts this pattern after the offset instruction
      * @param instructions insn list to operate on
      * @param offset instruction this pattern will be placed after
@@ -189,6 +199,16 @@ public class Pattern {
      */
     public void insertAfterAll(InsnList instructions, AbstractInsnNode toInsertAfter) {
         new Pattern(toInsertAfter).match(instructions).forEach(matched -> this.clone().insertAfter(instructions, matched.get(0)));
+    }
+
+    /**
+     * Inserts this pattern after the last instruction matching
+     * @param instructions insn list to operate on
+     * @param toInsertAfterLast instruction to match
+     */
+    public void insertAfterLast(InsnList instructions, AbstractInsnNode toInsertAfterLast) {
+        List<List<AbstractInsnNode>> lists = new Pattern(toInsertAfterLast).match(instructions);
+        this.clone().insertAfter(instructions, lists.get(lists.size()-1).get(0));
     }
 
     /**

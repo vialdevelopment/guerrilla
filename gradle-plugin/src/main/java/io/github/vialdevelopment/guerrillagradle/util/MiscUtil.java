@@ -37,7 +37,7 @@ public class MiscUtil {
     }
 
     public static String toNormalName(String internalName, List<String> makePublics) {
-        return isValidPublicName(internalName, makePublics) ? internalName.substring(0, internalName.length()-6) : internalName;
+        return isPublicName(internalName, makePublics) ? internalName.substring(0, internalName.length()-6) : internalName;
     }
 
 }
