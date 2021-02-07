@@ -1,6 +1,6 @@
 allprojects {
     group = 'io.github.vialdevelopment'
-    version = '1.0-SNAPSHOT'
+    version = '0.0.1'
 }
 
 subprojects {
