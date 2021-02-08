@@ -3,7 +3,7 @@
 ## Target class
 
 ```java
-@TransformClass(className = "bar.foo.Boxes")
+@TransformClass(name = "bar.foo.Boxes")
 public class MyTransformer extends Boxes {
 
 }
@@ -21,7 +21,7 @@ Any interfaces are automatically copied over.
 
 ## ASM Method Transformation
 ```java
-@TransformMethod(methodName = "walk", methodDesc = "(Ljava/lang/String;D)V")
+@TransformMethod(name = "walk", desc = "(Ljava/lang/String;D)V")
 public static void transformWalk(MethodNode methodNode, boolean obf) {
     // ASM transformation done here
 }
@@ -31,7 +31,7 @@ features and utilities like `Pattern`.
 
 ## Inserting at HEAD
 ```java
-@TransformMethod(methodName = "walk", methodDesc = "(Ljava/lang/String;D)V")
+@TransformMethod(name = "walk", desc = "(Ljava/lang/String;D)V")
 @Insert(value = @At(at = At.loc.HEAD))
 public void hookHeadWalk(String person, double ticks) {
     // add code to be inserted at start of method here
@@ -42,7 +42,7 @@ Your hook method should have the same parameters and return type.
 
 ## Inserting at RETURN
 ```java
-@TransformMethod(methodName = "walk", methodDesc = "(Ljava/lang/String;D)V")
+@TransformMethod(name = "walk", desc = "(Ljava/lang/String;D)V")
 @Insert(value = @At(at = At.loc.RETURN))
 public void hookReturnWalk(String person, double ticks) {
     // add code to be inserted before every return of the method here 
@@ -53,7 +53,7 @@ Your hook method should have the same parameters and return type.
 
 ## Redirecting a method call
 ```java
-@TransformMethod(methodName = "walk", methodDesc = "(Ljava/lang/String;D)V")
+@TransformMethod(name = "walk", desc = "(Ljava/lang/String;D)V")
 @Insert(value = @At(at = At.loc.INVOKE, ref = Opcodes.INVOKEVIRTUAL + " the/foo/owner redirectedMethod (Ljava/lang/Boolean;D)V"))
 public void hooWalkRedirectedMethod(Boolean dupe, double ticks) {
     // add code for this method call 
@@ -67,7 +67,7 @@ This redirects a method call, with a method with the same return value and the a
     
 ## Redirecting a field call
 ```java
-@TransformMethod(methodName = "walk", methodDesc = "(Ljava/lang/String;D)V")
+@TransformMethod(name = "walk", desc = "(Ljava/lang/String;D)V")
 @Insert(value = @At(at = At.loc.FIELD, ref = Opcodes.GETFIELD + " the/foo/Owner theField Z"))
 public boolean hooWalkRedirectedField(Owner owner, String name, double ticks) {
     // add code for this field call 
@@ -80,7 +80,7 @@ This redirects a field call, with a method with the same return value as the fie
 
 ## Overwriting
 ```java
-@TransformMethod(methodName = "walk", methodDesc = "(Ljava/lang/String;D)V")
+@TransformMethod(name = "walk", desc = "(Ljava/lang/String;D)V")
 @Overwrite
 public void walkOverwrite(String person, double ticks) {
     // new code
@@ -92,7 +92,7 @@ This is a crime to use.
 
 ## Class variables
 ```java
-@TransformClass(className = "bar.foo.Boxes")
+@TransformClass(name = "bar.foo.Boxes")
 public class MyTransformer extends Boxes {
     public int a = 5;
 }

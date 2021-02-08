@@ -10,7 +10,7 @@ that the compiler inserted are stripped out.
 
 ## Returning void
 ```java
-@TransformMethod(methodName = "foo", methodDesc = "(Ljava/lang/String;I)V")
+@TransformMethod(name = "foo", desc = "(Ljava/lang/String;I)V")
 @Insert(@At(at = At.loc.HEAD))
 public void foo(String dod, int bar) {
     PooEvent event = new PooEvent(dod, bar);
@@ -22,7 +22,7 @@ This method is inserted into the `foo` method, and if our `PooEvent` is cancelle
 
 ## Returning a value
 ```java
-@TransformMethod(methodName = "canBeSteered", methodDesc = "()Z")
+@TransformMethod(name = "canBeSteered", desc = "()Z")
 @Insert(returnType = ASMFactory.EReturnTypes.BOOLEAN, value = @At(at = At.loc.HEAD))
 public void canBeSteered() {
     if(MyThingy.INSTANCE.getState()) {
