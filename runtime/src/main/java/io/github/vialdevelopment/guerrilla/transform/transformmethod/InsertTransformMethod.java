@@ -38,7 +38,7 @@ public class InsertTransformMethod implements ITransformMethod {
         ASMAnnotation transformMethodAnnotation = asmAnnotation[0];
         ASMAnnotation insertAnnotation = asmAnnotation[1];
 
-        System.out.println("Invoking method " + transformMethodAnnotation.get("methodName"));
+        System.out.println("Invoking method " + transformMethodAnnotation.get("name"));
 
         At.loc injectionLocation = At.loc.valueOf(((String[]) ((ASMAnnotation)insertAnnotation.get("value")).get("at"))[1]);
 

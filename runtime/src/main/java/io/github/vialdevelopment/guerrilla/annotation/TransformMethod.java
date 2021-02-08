@@ -20,17 +20,17 @@ public @interface TransformMethod {
     /**
      * @return the name of the method
      */
-    String methodName();
+    String name();
 
     /**
      * @return the description of the method
      */
-    String methodDesc();
+    String desc();
 
     /**
      * @return the obfuscated name of the method
      */
-    String obfMethodName() default "";
+    String obfName() default "";
 
     /**
      * @return the obfuscated description of the method
@@ -38,5 +38,5 @@ public @interface TransformMethod {
      * Default allows for obfMethodDesc to not be entered
      * This should be impl'd by checking if the string is empty
      */
-    String obfMethodDesc() default "";
+    String obfDesc() default "";
 }
