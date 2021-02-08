@@ -40,6 +40,8 @@ public class FixTransformerClasses extends DefaultTask {
     public Map<String, String> transformersTransforming;
     /** make publics list */
     public List<String> makePublics;
+    /** remap annotations */
+    public boolean remap;
 
     @TaskAction
     public void transform() {
@@ -61,10 +63,12 @@ public class FixTransformerClasses extends DefaultTask {
                         String deobfClassName = remapClassName(classNode);
                         alreadyUsedTransformers.add(deobfClassName.replace('.', '/'));
                         transformersTransforming.put(classNode.name, deobfClassName.replace('.', '/'));
-                        remapMethodNames(classNode, deobfClassName);
-                        remapFieldRedirects(classNode);
-                        remapMethodRedirects(classNode);
-                        remapTransformFieldAccess(classNode, deobfClassName);
+                        if (remap) {
+                            remapMethodNames(classNode, deobfClassName);
+                            remapFieldRedirects(classNode);
+                            remapMethodRedirects(classNode);
+                            remapTransformFieldAccess(classNode, deobfClassName);
+                        }
                         removeTransformIgnores(classNode);
 
                         ClassWriter classWriter = new ClassWriter(0);
@@ -108,7 +112,7 @@ public class FixTransformerClasses extends DefaultTask {
             return classNode.name;
         }
         String className = (String) transformClassAnnotation.get("name");
-        if (transformClassAnnotation.get("obfName") == null) {
+        if (remap && transformClassAnnotation.get("obfName") == null) {
             String remapped = mapper.remapClassName(className);
             if (remapped == null) return className;
             transformClassAnnotation.put("obfName", remapped);

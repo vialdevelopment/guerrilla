@@ -44,6 +44,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.alreadyUsedTransformers = alreadyDone;
             task.transformersTransforming = transformersTransforming;
             task.makePublics = extension.makePublic;
+            task.remap = extension.remap;
         });
 
         TaskProvider<FixAllClasses> fixAllClassesTaskProvider = project.getTasks().register("fixAllClasses", FixAllClasses.class);
