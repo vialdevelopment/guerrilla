@@ -19,10 +19,10 @@ public @interface TransformClass {
     /**
      * @return the name of the class to transform
      */
-    String className();
+    String name();
 
     /**
      * @return the obfuscated name of the class!
      */
-    String obfClassName() default "";
+    String obfName() default "";
 }

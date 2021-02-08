@@ -25,7 +25,7 @@ public class ASMTransformMethod implements ITransformMethod {
 
     @Override
     public void insert(ClassNode classBeingTransformed, ClassNode transformerClass, MethodNode methodBeingTransformed, MethodNode transformerMethod, ASMAnnotation... asmAnnotation) {
-        System.out.println("Invoking method " + asmAnnotation[0].get("methodName"));
+        System.out.println("Invoking method " + asmAnnotation[0].get("name"));
         try {
             // object is null because static
             MethodAccess.get(Class.forName(transformerClass.name.replace('/', '.'))).invoke(null, transformerMethod.name, methodBeingTransformed, OBF);

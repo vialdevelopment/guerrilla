@@ -13,15 +13,11 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-
-import static org.objectweb.asm.Opcodes.*;
 
 /**
  * A manager for applying and organizing the Transforms
@@ -129,7 +125,7 @@ public class TransformManager {
 
         if (transformClassAnnotation == null) return;
 
-        final String className = OBF ? transformClassAnnotation.obfClassName() : transformClassAnnotation.className();
+        final String className = OBF ? transformClassAnnotation.obfName() : transformClassAnnotation.name();
 
         if (transformMap.containsKey(className)) {
             transformMap.get(className).add(transform.getName());

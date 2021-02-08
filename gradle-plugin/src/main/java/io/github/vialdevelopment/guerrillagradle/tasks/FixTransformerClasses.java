@@ -103,11 +103,11 @@ public class FixTransformerClasses extends DefaultTask {
      */
     private String remapClassName(ClassNode classNode) {
         ASMAnnotation transformClassAnnotation = ASMAnnotation.getAnnotation(classNode, "Lio/github/vialdevelopment/guerrilla/annotation/TransformClass;");
-        String className = (String) transformClassAnnotation.get("className");
-        if (transformClassAnnotation.get("obfClassName") == null) {
+        String className = (String) transformClassAnnotation.get("name");
+        if (transformClassAnnotation.get("obfName") == null) {
             String remapped = mapper.remapClassName(className);
             if (remapped == null) return className;
-            transformClassAnnotation.put("obfClassName", remapped);
+            transformClassAnnotation.put("obfName", remapped);
             transformClassAnnotation.write();
         }
         return className;
@@ -122,12 +122,12 @@ public class FixTransformerClasses extends DefaultTask {
         for (MethodNode method : classNode.methods) {
             ASMAnnotation transformMethodAnnotation = ASMAnnotation.getAnnotation(method, "Lio/github/vialdevelopment/guerrilla/annotation/TransformMethod;");
             if (transformMethodAnnotation == null) continue;
-            if (transformMethodAnnotation.get("obfMethodName") == null) {
-                String remappedName = mapper.remapMethodName(deObfClassName, (String) transformMethodAnnotation.get("methodName"), (String) transformMethodAnnotation.get("methodDesc"));
+            if (transformMethodAnnotation.get("obfName") == null) {
+                String remappedName = mapper.remapMethodName(deObfClassName, (String) transformMethodAnnotation.get("name"), (String) transformMethodAnnotation.get("desc"));
                 if (remappedName == null) continue;
                 String[] remapped = remappedName.split(" ");
-                transformMethodAnnotation.put("obfMethodName", remapped[0]);
-                transformMethodAnnotation.put("obfMethodDesc", remapped[1]);
+                transformMethodAnnotation.put("obfName", remapped[0]);
+                transformMethodAnnotation.put("obfDesc", remapped[1]);
 
                 transformMethodAnnotation.write();
             }
