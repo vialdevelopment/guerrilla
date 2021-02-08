@@ -103,6 +103,10 @@ public class FixTransformerClasses extends DefaultTask {
      */
     private String remapClassName(ClassNode classNode) {
         ASMAnnotation transformClassAnnotation = ASMAnnotation.getAnnotation(classNode, "Lio/github/vialdevelopment/guerrilla/annotation/TransformClass;");
+        if (transformClassAnnotation == null) {
+            System.out.println("TRANSFORMER CLASS DOES NOT HAVE @TRANSFORMCLASS ANNOTATION!");
+            return classNode.name;
+        }
         String className = (String) transformClassAnnotation.get("name");
         if (transformClassAnnotation.get("obfName") == null) {
             String remapped = mapper.remapClassName(className);
