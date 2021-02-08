@@ -184,6 +184,10 @@ public class ASMUtil {
         } else if (node instanceof VarInsnNode) {
 
             return ((VarInsnNode) node).var == ((VarInsnNode) node2).var;
+
+        } else if (node instanceof LineNumberNode) {
+
+            return ((LineNumberNode) node).line == ((LineNumberNode) node2).line;
         }
         // it's just an insnode and opcodes are equal
         return true;
