@@ -57,6 +57,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.transformer = extension.transformer;
             task.transformersTransforming = transformersTransforming;
             task.mapper = mapper;
+            task.remap = extension.remap;
         });
 
         TaskProvider<AddClassesToTransformExclude> addClassesToTransformExcludeTaskProvider = project.getTasks().register("AddRuntimeTransformExclude", AddClassesToTransformExclude.class);
