@@ -43,6 +43,8 @@ public class FixAllClasses extends DefaultTask {
     public Map<String, String> transformersTransforming;
     /** mapper */
     public Mapper mapper;
+    /** should remap */
+    public boolean remap;
 
     @TaskAction
     public void transform() {
@@ -135,28 +137,30 @@ public class FixAllClasses extends DefaultTask {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        try {
-            // now we write the classes to receive the public and non-final abuse to a file
-            // to be done at runtime
-            // FIXME this shouldn't be always in the main submodule
-            // remap names for obf
-            TreeSet<String> remappedPublicsUsed = new TreeSet<>();
-            for (Iterator<String> iterator = publicsUsed.iterator(); iterator.hasNext(); ) {
-                String s = iterator.next();
-                String remapped = mapper.remapClassName(s);
-                remappedPublicsUsed.add(remapped != null ? remapped : s);
+        if (remap) {
+            try {
+                // now we write the classes to receive the public and non-final abuse to a file
+                // to be done at runtime
+                // FIXME this shouldn't be always in the main submodule
+                // remap names for obf
+                TreeSet<String> remappedPublicsUsed = new TreeSet<>();
+                for (Iterator<String> iterator = publicsUsed.iterator(); iterator.hasNext(); ) {
+                    String s = iterator.next();
+                    String remapped = mapper.remapClassName(s);
+                    remappedPublicsUsed.add(remapped != null ? remapped : s);
+                }
+                String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public-obf.txt";
+                File makePublicTXTFile = new File(makePublicTXTPath);
+                makePublicTXTFile.getParentFile().mkdirs();
+                FileWriter fileWriter = new FileWriter(makePublicTXTFile);
+                for (String s : remappedPublicsUsed) {
+                    fileWriter.write(s);
+                    fileWriter.write("\n");
+                }
+                fileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public-obf.txt";
-            File makePublicTXTFile = new File(makePublicTXTPath);
-            makePublicTXTFile.getParentFile().mkdirs();
-            FileWriter fileWriter = new FileWriter(makePublicTXTFile);
-            for (String s : remappedPublicsUsed) {
-                fileWriter.write(s);
-                fileWriter.write("\n");
-            }
-            fileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
