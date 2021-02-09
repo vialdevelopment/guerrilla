@@ -1,7 +1,8 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePluginExtension;
 import io.github.vialdevelopment.guerrillagradle.Mapper;
-import io.github.vialdevelopment.guerrillagradle.util.MiscUtil;
+import io.github.vialdevelopment.guerrillagradle.util.NameUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.objectweb.asm.ClassReader;
@@ -16,7 +17,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -25,26 +25,19 @@ import static org.objectweb.asm.Opcodes.ASM5;
 /**
  * Fixes all the classes to be usable at runtime
  */
-public class FixAllClasses extends DefaultTask {
-
+public class FixAllClassesTask extends DefaultTask {
+    /** config extension */
+    public GuerrillaGradlePluginExtension extension;
     /** project build directory */
     public File buildClassesDirectory;
     /** project build resources folder */
     public File resourcesDir;
-    /** make publics list */
-    public List<String> makePublics;
-    /** transformers package */
-    public String transformersPackage;
-    /** main transformer class */
-    public String transformerRegistrationClass;
     /** classes being transformed */
     public TreeSet<String> alreadyUsedTransformers;
     /** classes transformers are transforming */
     public Map<String, String> transformersTransforming;
     /** mapper */
     public Mapper mapper;
-    /** should remap */
-    public boolean remap;
 
     @TaskAction
     public void transform() {
@@ -67,7 +60,7 @@ public class FixAllClasses extends DefaultTask {
                         classReader.accept(new ClassVisitor(ASM5) {
                             @Override
                             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                                if (name.startsWith(transformersPackage) || name.equals(transformerRegistrationClass)) {
+                                if (name.startsWith(extension.transformersPackage) || name.equals(extension.transformerRegistrationClass)) {
                                     isMainTransformer[0] = true;
                                 }
                             }
@@ -79,8 +72,8 @@ public class FixAllClasses extends DefaultTask {
                             classRemapper = new ClassRemapper(classNode, new Remapper() {
                                 @Override
                                 public String map(String internalName) {
-                                    if (MiscUtil.isPublicName(internalName, makePublics)) {
-                                        String normalizedName = MiscUtil.toNormalName(internalName, makePublics);
+                                    if (NameUtil.isPublicName(internalName, extension.makePublic)) {
+                                        String normalizedName = NameUtil.toNormalName(internalName, extension.makePublic);
                                         publicsUsed.add(normalizedName);
                                         return normalizedName;
                                     }
@@ -91,12 +84,12 @@ public class FixAllClasses extends DefaultTask {
                             classRemapper = new ClassRemapper(classNode, new Remapper() {
                                 @Override
                                 public String map(String internalName) {
-                                    if (MiscUtil.isPublicName(internalName, makePublics)) {
-                                        String normalizedName = MiscUtil.toNormalName(internalName, makePublics);
+                                    if (NameUtil.isPublicName(internalName, extension.makePublic)) {
+                                        String normalizedName = NameUtil.toNormalName(internalName, extension.makePublic);
                                         publicsUsed.add(normalizedName);
                                         return normalizedName;
                                     }
-                                    if (internalName.startsWith(transformersPackage)) {
+                                    if (internalName.startsWith(extension.transformersPackage)) {
                                         return transformersTransforming.get(internalName);
                                     }
                                     return internalName;
@@ -137,7 +130,7 @@ public class FixAllClasses extends DefaultTask {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (remap) {
+        if (extension.remap) {
             try {
                 // now we write the classes to receive the public and non-final abuse to a file
                 // to be done at runtime

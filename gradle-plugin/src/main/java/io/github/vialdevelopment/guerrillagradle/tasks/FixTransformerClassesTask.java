@@ -1,8 +1,9 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePluginExtension;
 import io.github.vialdevelopment.guerrillagradle.Mapper;
 import io.github.vialdevelopment.guerrillagradle.util.ASMAnnotation;
-import io.github.vialdevelopment.guerrillagradle.util.MiscUtil;
+import io.github.vialdevelopment.guerrillagradle.util.NameUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.objectweb.asm.ClassReader;
@@ -20,32 +21,27 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
 /**
  * Fixes the transformer classes to be usable at runtime
  */
-public class FixTransformerClasses extends DefaultTask {
+public class FixTransformerClassesTask extends DefaultTask {
+    /** config extension */
+    public GuerrillaGradlePluginExtension extension;
     /** project build directory */
     public File buildClassesDirectory;
-    /** transformers package */
-    public String transformersPackage;
     /** mapper instance */
     public Mapper mapper;
     /** classes being transformed */
     public TreeSet<String> alreadyUsedTransformers;
     /** classes transformers are transforming */
     public Map<String, String> transformersTransforming;
-    /** make publics list */
-    public List<String> makePublics;
-    /** remap annotations */
-    public boolean remap;
 
     @TaskAction
     public void transform() {
-        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + transformersPackage);
+        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + extension.transformersPackage);
         try {
             // loop over all transformer class files
             Files.walk(Paths.get(transformersFolder.toURI())).forEach(path -> {
@@ -63,7 +59,7 @@ public class FixTransformerClasses extends DefaultTask {
                         String deobfClassName = remapClassName(classNode);
                         alreadyUsedTransformers.add(deobfClassName.replace('.', '/'));
                         transformersTransforming.put(classNode.name, deobfClassName.replace('.', '/'));
-                        if (remap) {
+                        if (extension.remap) {
                             remapMethodNames(classNode, deobfClassName);
                             remapFieldRedirects(classNode);
                             remapMethodRedirects(classNode);
@@ -94,7 +90,7 @@ public class FixTransformerClasses extends DefaultTask {
     private void removeSuper(ClassNode classNode) {
         if (!classNode.superName.equals("java/lang/Object")) {
             AnnotationNode transformExtendsAnnotation = new AnnotationNode("Lio/github/vialdevelopment/guerrilla/annotation/info/TransformerExtends;");
-            transformExtendsAnnotation.visit("clazz", MiscUtil.toNormalName(classNode.superName, makePublics));
+            transformExtendsAnnotation.visit("clazz", NameUtil.toNormalName(classNode.superName, extension.makePublic));
             classNode.visibleAnnotations.add(transformExtendsAnnotation);
             classNode.superName = "java/lang/Object";
         }
@@ -112,7 +108,7 @@ public class FixTransformerClasses extends DefaultTask {
             return classNode.name;
         }
         String className = (String) transformClassAnnotation.get("name");
-        if (remap && transformClassAnnotation.get("obfName") == null) {
+        if (extension.remap && transformClassAnnotation.get("obfName") == null) {
             String remapped = mapper.remapClassName(className);
             if (remapped == null) return className;
             transformClassAnnotation.put("obfName", remapped);

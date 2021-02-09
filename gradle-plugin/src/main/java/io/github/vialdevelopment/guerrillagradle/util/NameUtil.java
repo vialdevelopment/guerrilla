@@ -3,9 +3,9 @@ package io.github.vialdevelopment.guerrillagradle.util;
 import java.util.List;
 
 /**
- * Miscellaneous utilities
+ * Name utilities
  */
-public class MiscUtil {
+public class NameUtil {
 
     /**
      * Checks if this class name is a reference to a minecraft-public

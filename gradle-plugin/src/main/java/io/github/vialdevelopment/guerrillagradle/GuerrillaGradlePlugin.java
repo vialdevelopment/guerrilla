@@ -23,49 +23,42 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
 
 
 
-        TaskProvider<CreatePublicJar> createPublicJarTaskProvider = project.getTasks().register("createPublicJar", CreatePublicJar.class);
+        TaskProvider<CreatePublicJarTask> createPublicJarTaskProvider = project.getTasks().register("createPublicJar", CreatePublicJarTask.class);
         createPublicJarTaskProvider.configure(task -> {
+            task.extension = extension;
             task.javaCompile = javaCompile;
             task.mapper = mapper;
-            task.makePublics = extension.makePublic;
         });
 
-        TaskProvider<InitMapper> initMapperTaskProvider = project.getTasks().register("initMapper", InitMapper.class);
+        TaskProvider<InitMapperTask> initMapperTaskProvider = project.getTasks().register("initMapper", InitMapperTask.class);
         initMapperTaskProvider.configure(task -> {
+            task.extension = extension;
             task.mapper = mapper;
-            task.mcpVersion = extension.mcpVersion;
-            task.mappingsSrgFile = extension.mappingsSrgFile;
         });
 
-        TaskProvider<FixTransformerClasses> fixTransformerClassesTaskProvider = project.getTasks().register("fixTransformers", FixTransformerClasses.class);
+        TaskProvider<FixTransformerClassesTask> fixTransformerClassesTaskProvider = project.getTasks().register("fixTransformers", FixTransformerClassesTask.class);
         fixTransformerClassesTaskProvider.configure(task -> {
+            task.extension = extension;
             task.buildClassesDirectory = javaCompile.getDestinationDir();
-            task.transformersPackage = extension.transformersPackage;
             task.mapper = mapper;
             task.alreadyUsedTransformers = alreadyDone;
             task.transformersTransforming = transformersTransforming;
-            task.makePublics = extension.makePublic;
-            task.remap = extension.remap;
         });
 
-        TaskProvider<FixAllClasses> fixAllClassesTaskProvider = project.getTasks().register("fixAllClasses", FixAllClasses.class);
+        TaskProvider<FixAllClassesTask> fixAllClassesTaskProvider = project.getTasks().register("fixAllClasses", FixAllClassesTask.class);
         fixAllClassesTaskProvider.configure(task -> {
+            task.extension = extension;
             task.buildClassesDirectory = javaCompile.getDestinationDir();
             task.resourcesDir = new File(project.getBuildDir() + "/resources");
             task.alreadyUsedTransformers = alreadyDone;
-            task.makePublics = extension.makePublic;
-            task.transformersPackage = extension.transformersPackage;
-            task.transformerRegistrationClass = extension.transformerRegistrationClass;
             task.transformersTransforming = transformersTransforming;
             task.mapper = mapper;
-            task.remap = extension.remap;
         });
 
-        TaskProvider<AddClassesToTransformExclude> addClassesToTransformExcludeTaskProvider = project.getTasks().register("AddRuntimeTransformExclude", AddClassesToTransformExclude.class);
+        TaskProvider<AddClassesToTransformExcludeTask> addClassesToTransformExcludeTaskProvider = project.getTasks().register("AddRuntimeTransformExclude", AddClassesToTransformExcludeTask.class);
         addClassesToTransformExcludeTaskProvider.configure(task -> {
+            task.extension = extension;
             task.buildClassesDirectory = javaCompile.getDestinationDir();
-            task.resourcesDir = new File(project.getBuildDir() + "/resources");
-            task.transformersPackage = extension.transformersPackage;
         });
 
         javaCompile.dependsOn(createPublicJarTaskProvider);
@@ -75,7 +68,6 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
         javaCompile.finalizedBy(addClassesToTransformExcludeTaskProvider);
 
         project.afterEvaluate(action -> {
-            // setupMinecraftJarTaskProvider.get().process();
             project.getRepositories().flatDir(repo -> {
                 repo.setName("guerrilla");
                 repo.dirs(project.getBuildDir() + "/tmp/guerrilla");

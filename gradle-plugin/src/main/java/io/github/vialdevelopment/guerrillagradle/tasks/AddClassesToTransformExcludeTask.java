@@ -1,5 +1,6 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePluginExtension;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.objectweb.asm.ClassReader;
@@ -12,18 +13,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.TreeSet;
 
-public class AddClassesToTransformExclude extends DefaultTask {
+/**
+ * Reads in all the transformer classes and adds them to a list to be excluded from runtime transformation
+ */
+public class AddClassesToTransformExcludeTask extends DefaultTask {
+    /** config extension */
+    public GuerrillaGradlePluginExtension extension;
     /** project build directory */
     public File buildClassesDirectory;
-    /** project build resources folder */
-    public File resourcesDir;
-    /** transformers package */
-    public String transformersPackage;
 
     @TaskAction
     public void process() {
         TreeSet<String> toExclude = new TreeSet<>();
-        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + transformersPackage);
+        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + extension.transformersPackage);
         try {
             // loop over all transformer class files
             Files.walk(Paths.get(transformersFolder.toURI())).forEach(path -> {
@@ -51,8 +53,8 @@ public class AddClassesToTransformExclude extends DefaultTask {
         try {
             // now we write the classes to receive the public and non-final abuse to a file
             // to be done at runtime
-            // FIXME this shouldn't be always in the main submodule
-            File excludeTransformFile = new File(resourcesDir + "/main/guerrilla-transform-exclude.txt");
+            // TODO this shouldn't be always in the main submodule
+            File excludeTransformFile = new File(getProject().getBuildDir() + "/resources" + "/main/guerrilla-transform-exclude.txt");
             excludeTransformFile.getParentFile().mkdirs();
             FileWriter fileWriter = new FileWriter(excludeTransformFile);
             for (String s : toExclude) {

@@ -1,7 +1,8 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePluginExtension;
 import io.github.vialdevelopment.guerrillagradle.Mapper;
-import io.github.vialdevelopment.guerrillagradle.util.MiscUtil;
+import io.github.vialdevelopment.guerrillagradle.util.NameUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -11,8 +12,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.MethodNode;
 
 import java.io.*;
 import java.util.*;
@@ -23,11 +22,17 @@ import java.util.zip.ZipOutputStream;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class CreatePublicJar extends DefaultTask {
-
+/**
+ * Creates a PUBLIC jar with everything accessible
+ */
+public class CreatePublicJarTask extends DefaultTask {
+    /** config extension */
+    public GuerrillaGradlePluginExtension extension;
+    /** java compile task */
     public JavaCompile javaCompile;
+    /** mapper */
     public Mapper mapper;
-    public List<String> makePublics;
+    /** inheritance map */
     public Map<String, String> inheritanceMap = new HashMap<>();
 
     @TaskAction
@@ -72,7 +77,7 @@ public class CreatePublicJar extends DefaultTask {
                                 classReader.accept(new ClassVisitor(ASM6) {
                                     @Override
                                     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                                        for (String aPublic : makePublics) {
+                                        for (String aPublic : extension.makePublic) {
                                             if (name.matches(aPublic)) {
                                                 transform[0] = true;
                                                 break;
@@ -86,13 +91,13 @@ public class CreatePublicJar extends DefaultTask {
                                 ClassVisitor classRemapper = new ClassRemapper(classNode, new Remapper() {
                                     @Override
                                     public String map(String internalName) {
-                                        return MiscUtil.toPublicName(internalName, makePublics);
+                                        return NameUtil.toPublicName(internalName, extension.makePublic);
                                     }
                                 });
 
                                 classReader.accept(classRemapper, 0);
 
-                                inheritanceMap.put(MiscUtil.toNormalName(classNode.name, makePublics), MiscUtil.toNormalName(classNode.superName, makePublics));
+                                inheritanceMap.put(NameUtil.toNormalName(classNode.name, extension.makePublic), NameUtil.toNormalName(classNode.superName, extension.makePublic));
 
                                 // make everything public
                                 classNode.access = (classNode.access & (~ACC_PRIVATE)) | ACC_PUBLIC;
