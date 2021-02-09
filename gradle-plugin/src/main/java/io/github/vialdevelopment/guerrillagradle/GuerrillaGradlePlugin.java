@@ -34,6 +34,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
         initMapperTaskProvider.configure(task -> {
             task.mapper = mapper;
             task.mcpVersion = extension.mcpVersion;
+            task.mappingsSrgFile = extension.mappingsSrgFile;
         });
 
         TaskProvider<FixTransformerClasses> fixTransformerClassesTaskProvider = project.getTasks().register("fixTransformers", FixTransformerClasses.class);

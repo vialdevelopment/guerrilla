@@ -14,5 +14,7 @@ public class GuerrillaGradlePluginExtension {
     public String mcpVersion = "";
     /** Regex list of classes to make public */
     public List<String> makePublic = new ArrayList<>();
+    /** Mappings SRG File if you want to hard code it */
+    public String mappingsSrgFile = "";
 
 }

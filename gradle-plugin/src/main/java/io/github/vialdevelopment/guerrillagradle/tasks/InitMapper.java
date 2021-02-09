@@ -12,10 +12,12 @@ public class InitMapper extends DefaultTask {
     public Mapper mapper;
     /** MCP version */
     public String mcpVersion;
+    /** Mappings SRG File */
+    public String mappingsSrgFile;
 
     @TaskAction
     public void process() {
-        mapper.init(getProject(), mcpVersion);
+        mapper.init(getProject(), mcpVersion, mappingsSrgFile);
     }
 
 }

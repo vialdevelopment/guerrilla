@@ -23,24 +23,12 @@ public class Mapper {
      * @param project gradle project
      * @param mcpVersion mcp version
      */
-    public void init(Project project, String mcpVersion) {
-        if (mcpVersion.equals("")) { // make sure mcp version is set
-            System.out.println("MCP VERSION NOT SET");
+    public void init(Project project, String mcpVersion, String mappingsSRGFile) {
+        if (mcpVersion.equals("") && mappingsSRGFile.equals("")) { // make sure mcp version is set
+            System.out.println("MAPPINGS NOT SET");
             return;
         }
-        // TODO check if on forge
-        // get the folder containing the mcp mappings
-        String mcpType = "mcp_" + mcpVersion.split("_")[0];
-        String mcpVersionNumber = mcpVersion.split("_")[1];
-        mcpFolder = Paths.get(Paths.get(project.getGradle().getGradleUserHomeDir().getPath(), "caches/minecraft/de/oceanlabs/mcp/", mcpType + "/" + mcpVersionNumber).toString());
-        // load the mappings
-        loadMappings(project);
-    }
 
-    /**
-     * Loads the mappings,
-     */
-    public void loadMappings(Project project) {
         File mappingsFile = new File(project.getBuildDir() + "/tmp/guerrilla/mappings");
 
         if (mappingsFile.exists()) {
@@ -56,6 +44,34 @@ public class Mapper {
             }
         }
 
+        if (mappingsSRGFile.equals("")) {
+            // get the folder containing the mcp mappings
+            String mcpType = "mcp_" + mcpVersion.split("_")[0];
+            String mcpVersionNumber = mcpVersion.split("_")[1];
+            mcpFolder = Paths.get(Paths.get(project.getGradle().getGradleUserHomeDir().getPath(), "caches/minecraft/de/oceanlabs/mcp/", mcpType + "/" + mcpVersionNumber).toString());
+            // load the mappings
+            loadMappingsFromFGCache();
+        } else {
+            try {
+                parseSRGMappingsFile(new File(mappingsSRGFile));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(mappingsFile);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(unObfToObfMappings);
+            objectOutputStream.close();
+            fileOutputStream.close();
+
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Loads the mappings,
+     */
+    public void loadMappingsFromFGCache() {
         try {
             // get the file mcp-notch.srg
             File mcpToNotchSrgFile = null;
@@ -68,32 +84,30 @@ public class Mapper {
             }
             assert mcpToNotchSrgFile != null;
             // read in the mappings
-            FileInputStream inputStream = new FileInputStream(mcpToNotchSrgFile);
-            Scanner scanner = new Scanner(inputStream, "UTF-8");
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                String[] lineSplitSpaces = line.split(" ");
-                switch(line.substring(0, 2)) {
-                    case "CL":
-                        unObfToObfMappings.put(lineSplitSpaces[1], lineSplitSpaces[2]);
-                        break;
-                    case "FD":
-                        unObfToObfMappings.put(lineSplitSpaces[1], lineSplitSpaces[2]);
-                        break;
-                    case "MD":
-                        unObfToObfMappings.put(lineSplitSpaces[1] + " " + lineSplitSpaces[2], lineSplitSpaces[3] + " " + lineSplitSpaces[4]);
-                        break;
-                }
-            }
-
-            FileOutputStream fileOutputStream = new FileOutputStream(mappingsFile);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(unObfToObfMappings);
-            objectOutputStream.close();
-            fileOutputStream.close();
-
+            parseSRGMappingsFile(mcpToNotchSrgFile);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void parseSRGMappingsFile(File mappingsFile) throws IOException {
+        // read in the mappings
+        FileInputStream inputStream = new FileInputStream(mappingsFile);
+        Scanner scanner = new Scanner(inputStream, "UTF-8");
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            String[] lineSplitSpaces = line.split(" ");
+            switch(line.substring(0, 2)) {
+                case "CL":
+                    unObfToObfMappings.put(lineSplitSpaces[1], lineSplitSpaces[2]);
+                    break;
+                case "FD":
+                    unObfToObfMappings.put(lineSplitSpaces[1], lineSplitSpaces[2]);
+                    break;
+                case "MD":
+                    unObfToObfMappings.put(lineSplitSpaces[1] + " " + lineSplitSpaces[2], lineSplitSpaces[3] + " " + lineSplitSpaces[4]);
+                    break;
+            }
         }
     }
 
