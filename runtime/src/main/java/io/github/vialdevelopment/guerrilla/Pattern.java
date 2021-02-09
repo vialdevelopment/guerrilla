@@ -8,46 +8,52 @@ import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.LabelNode;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 
 /**
  * Holds the instruction pattern
  */
 public class Pattern {
+    /** Insn nodes in the pattern */
     public List<AbstractInsnNode> patternNodes = new ArrayList<>();
-
+    /** Insn node comparator to determine if they're equal*/
+    public BiPredicate<AbstractInsnNode, AbstractInsnNode> nodeComparer = ASMUtil::equalIns;
+    /** Pattern constructor of node vargs */
     public Pattern(AbstractInsnNode... nodes) {
         patternNodes.addAll(Arrays.asList(nodes));
         while (patternNodes.remove(null));
     }
-
+    /** Pattern constructor of node list */
     public Pattern(List<AbstractInsnNode> nodes) {
         patternNodes = nodes;
         while (patternNodes.remove(null));
     }
-
+    /** Pattern constructor of insn list */
     public Pattern(InsnList insnList) {
         for (int i = 0; i < insnList.size(); i++) {
             patternNodes.add(insnList.get(i));
         }
         while (patternNodes.remove(null));
     }
-
-    /**
-     * This takes in a class writer so that i can be lazy and just copy and paste from disassembly window
-     * mwahaha
-     * @param classWriter the classwriter with only 1 method that contains the pattern
-     */
-    public Pattern(ClassWriter classWriter) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(classWriter.toByteArray());
-        classReader.accept(classNode, 0);
-
-        assert classNode.methods.size() == 1;
-
-        InsnList insnList = classNode.methods.get(0).instructions;
+    /** Pattern constructor of node comparator and node vargs */
+    public Pattern(BiPredicate<AbstractInsnNode, AbstractInsnNode> nodeComparer, AbstractInsnNode... nodes) {
+        patternNodes.addAll(Arrays.asList(nodes));
+        while (patternNodes.remove(null));
+        this.nodeComparer = nodeComparer;
+    }
+    /** Pattern constructor of node comparator and node list */
+    public Pattern(BiPredicate<AbstractInsnNode, AbstractInsnNode> nodeComparer, List<AbstractInsnNode> nodes) {
+        patternNodes = nodes;
+        while (patternNodes.remove(null));
+        this.nodeComparer = nodeComparer;
+    }
+    /** Patern contructor of node comparator and insn  list */
+    public Pattern(BiPredicate<AbstractInsnNode, AbstractInsnNode> nodeComparer, InsnList insnList) {
         for (int i = 0; i < insnList.size(); i++) {
             patternNodes.add(insnList.get(i));
         }
+        while (patternNodes.remove(null));
+        this.nodeComparer = nodeComparer;
     }
 
     public InsnList getInsnList() {
@@ -70,11 +76,11 @@ public class Pattern {
 
         for (int instructionsIndex = 0; instructionsIndex < instructions.size() - patternNodes.size(); instructionsIndex++) {
             List<AbstractInsnNode> matched = new ArrayList<>();
-            if (ASMUtil.equalIns(instructions.get(instructionsIndex), patternNodes.get(0))) {
+            if (nodeComparer.test(instructions.get(instructionsIndex), patternNodes.get(0))) {
                 int patternIndex = 0;
                 for (; patternIndex < patternNodes.size(); patternIndex++) {
                     instructions.get(instructionsIndex + patternIndex);
-                    if (!ASMUtil.equalIns(instructions.get(instructionsIndex + patternIndex), patternNodes.get(patternIndex)))
+                    if (!nodeComparer.test(instructions.get(instructionsIndex + patternIndex), patternNodes.get(patternIndex)))
                         break;
                 }
                 if (patternIndex == patternNodes.size()) {
