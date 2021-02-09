@@ -120,8 +120,14 @@ public class CreatePublicJar extends DefaultTask {
                                 classNode.accept(classWriter);
                                 byte[] bytes = classWriter.toByteArray();
 
-                                zipOutputStream.putNextEntry(new ZipEntry(classNode.name + ".class"));
+                                try {
+                                    zipOutputStream.putNextEntry(new ZipEntry(classNode.name + ".class"));
+                                } catch (Exception e) {
+                                    continue;
+                                }
+
                                 zipOutputStream.write(bytes);
+                                zipOutputStream.closeEntry();
                             }
                         }
                     }
