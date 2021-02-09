@@ -103,34 +103,25 @@ public class InsertInvoke implements IInsert {
                             ASMFactory.EReturnTypes.valueOf(((String[]) insertAnnotation.get("returnType"))[1]) :
                             ASMFactory.EReturnTypes.RETURN);
 
-            int numberToMatch = (int) ((ASMAnnotation) insertAnnotation.get("value")).get("numberMatch");
-            int matchedCounter = 0;
-
             if (invokeOffset < 0) { // insert before
                 for (AbstractInsnNode current : methodBeingTransformed.instructions) {
-                    if (numberToMatch != 0 && matchedCounter >= numberToMatch) break;
-
                     if (ASMUtil.equalIns(current, methodCall)) {
                         AbstractInsnNode toInsertBefore = current;
-                        for (int i1 = 0; i1 <= invokeOffset - 1; i1--) {
+                        for (int i1 = 0; i1 > invokeOffset; i1--) {
                             toInsertBefore = toInsertBefore.getPrevious();
                         }
                         new Pattern(transformerMethod.instructions).insertBefore(methodBeingTransformed.instructions, toInsertBefore);
-                        matchedCounter++;
                     }
                 }
 
             } else { // insert after
                 for (AbstractInsnNode current : methodBeingTransformed.instructions) {
-                    if (numberToMatch != 0 && matchedCounter >= numberToMatch) break;
-
                     if (ASMUtil.equalIns(current, methodCall)) {
-                        AbstractInsnNode toInsertAfter = current;
-                        for (int i1 = 0; i1 < invokeOffset - 1; i1++) {
-                            toInsertAfter = toInsertAfter.getNext();
+                        AbstractInsnNode toInsertBefore = current;
+                        for (int i1 = 0; i1 < invokeOffset; i1++) {
+                            toInsertBefore = toInsertBefore.getNext();
                         }
-                        new Pattern(transformerMethod.instructions).insertAfter(transformerMethod.instructions, toInsertAfter);
-                        matchedCounter++;
+                        new Pattern(transformerMethod.instructions).insertBefore(transformerMethod.instructions, toInsertBefore);
                     }
                 }
             }

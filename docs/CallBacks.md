@@ -23,11 +23,9 @@ This method is inserted into the `foo` method, and if our `PooEvent` is cancelle
 ## Returning a value
 ```java
 @TransformMethod(name = "canBeSteered", desc = "()Z")
-@Insert(returnType = ASMFactory.EReturnTypes.BOOLEAN, value = @At(at = At.loc.HEAD))
+@Insert(value = @At(at = At.loc.HEAD), returnType = ASMFactory.EReturnTypes.BOOLEAN)
 public void canBeSteered() {
-    if(MyThingy.INSTANCE.getState()) {
-        CallBack.cancel(true);
-    }
+    if(MyThingy.INSTANCE.getState()) CallBack.cancel(true);
 }
 ```
 This method is inserted into the 'canBeSteered' method, and if `MyThings` is enabled, we return with `true`.<br>

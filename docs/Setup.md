@@ -10,16 +10,16 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath "io.github.vialdevelopment.guerrilla:guerrilla-gradle:VERSION"
+        classpath 'io.github.vialdevelopment.guerrilla:guerrilla-gradle:VERSION'
     }   
 }
 
-apply plugin: "io.github.vialdevelopment.guerrilla-gradle"
+apply plugin: 'io.github.vialdevelopment.guerrilla-gradle'
 
 guerrilla {
-    mcpVersion = "stable_39"
-    transformers = "my/project/transformers/package"
-    transformer = "my/project/loading/transformer"
+    mcpVersion = 'stable_39'
+    transformersPackage = 'my/project/transformers/package'
+    transformerRegistrationClass = 'my/project/loading/transformer'
     makePublic = ['make/everything/here/public/.*']
 }
 ```
@@ -36,3 +36,6 @@ dependencies {
     compile('io.github.vialdevelopment.guerrilla:guerrilla-runtime:VERSION')
 }
 ```
+
+## Finally
+Before you can compile your project, you must run the gradle `setupPublicJar` command.
