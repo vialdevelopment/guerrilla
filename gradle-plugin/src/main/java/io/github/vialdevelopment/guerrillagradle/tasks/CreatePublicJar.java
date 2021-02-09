@@ -69,7 +69,7 @@ public class CreatePublicJar extends DefaultTask {
 
                                 // make sure class is one to public abuse
                                 final boolean[] transform = {false};
-                                classReader.accept(new ClassVisitor(ASM5) {
+                                classReader.accept(new ClassVisitor(ASM6) {
                                     @Override
                                     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                                         for (String aPublic : makePublics) {
