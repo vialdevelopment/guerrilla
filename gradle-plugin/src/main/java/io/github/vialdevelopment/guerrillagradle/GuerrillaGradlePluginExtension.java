@@ -5,9 +5,9 @@ import java.util.List;
 
 public class GuerrillaGradlePluginExtension {
     /** Package containing transformer classes */
-    public String transformers = "";
+    public String transformersPackage = "";
     /** Class registering transformers */
-    public String transformer = "";
+    public String transformerRegistrationClass = "";
     /** Should remap annotations */
     public boolean remap = true;
     /** MCP mappings version */

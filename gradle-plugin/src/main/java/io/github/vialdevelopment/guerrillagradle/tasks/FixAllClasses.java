@@ -34,9 +34,9 @@ public class FixAllClasses extends DefaultTask {
     /** make publics list */
     public List<String> makePublics;
     /** transformers package */
-    public String transformers;
+    public String transformersPackage;
     /** main transformer class */
-    public String transformer;
+    public String transformerRegistrationClass;
     /** classes being transformed */
     public TreeSet<String> alreadyUsedTransformers;
     /** classes transformers are transforming */
@@ -67,7 +67,7 @@ public class FixAllClasses extends DefaultTask {
                         classReader.accept(new ClassVisitor(ASM5) {
                             @Override
                             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                                if (name.startsWith(transformers) || name.equals(transformer)) {
+                                if (name.startsWith(transformersPackage) || name.equals(transformerRegistrationClass)) {
                                     isMainTransformer[0] = true;
                                 }
                             }
@@ -96,7 +96,7 @@ public class FixAllClasses extends DefaultTask {
                                         publicsUsed.add(normalizedName);
                                         return normalizedName;
                                     }
-                                    if (internalName.startsWith(transformers)) {
+                                    if (internalName.startsWith(transformersPackage)) {
                                         return transformersTransforming.get(internalName);
                                     }
                                     return internalName;

@@ -39,7 +39,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
         TaskProvider<FixTransformerClasses> fixTransformerClassesTaskProvider = project.getTasks().register("fixTransformers", FixTransformerClasses.class);
         fixTransformerClassesTaskProvider.configure(task -> {
             task.buildClassesDirectory = javaCompile.getDestinationDir();
-            task.transformers = extension.transformers;
+            task.transformersPackage = extension.transformersPackage;
             task.mapper = mapper;
             task.alreadyUsedTransformers = alreadyDone;
             task.transformersTransforming = transformersTransforming;
@@ -53,8 +53,8 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.resourcesDir = new File(project.getBuildDir() + "/resources");
             task.alreadyUsedTransformers = alreadyDone;
             task.makePublics = extension.makePublic;
-            task.transformers = extension.transformers;
-            task.transformer = extension.transformer;
+            task.transformersPackage = extension.transformersPackage;
+            task.transformerRegistrationClass = extension.transformerRegistrationClass;
             task.transformersTransforming = transformersTransforming;
             task.mapper = mapper;
             task.remap = extension.remap;
@@ -64,7 +64,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
         addClassesToTransformExcludeTaskProvider.configure(task -> {
             task.buildClassesDirectory = javaCompile.getDestinationDir();
             task.resourcesDir = new File(project.getBuildDir() + "/resources");
-            task.transformers = extension.transformers;
+            task.transformersPackage = extension.transformersPackage;
         });
 
         javaCompile.dependsOn(createPublicJarTaskProvider);

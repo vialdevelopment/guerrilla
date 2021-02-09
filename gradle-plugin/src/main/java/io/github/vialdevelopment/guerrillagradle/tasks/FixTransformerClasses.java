@@ -31,7 +31,7 @@ public class FixTransformerClasses extends DefaultTask {
     /** project build directory */
     public File buildClassesDirectory;
     /** transformers package */
-    public String transformers;
+    public String transformersPackage;
     /** mapper instance */
     public Mapper mapper;
     /** classes being transformed */
@@ -45,7 +45,7 @@ public class FixTransformerClasses extends DefaultTask {
 
     @TaskAction
     public void transform() {
-        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + transformers);
+        File transformersFolder = new File(buildClassesDirectory.getPath() + "/" + transformersPackage);
         try {
             // loop over all transformer class files
             Files.walk(Paths.get(transformersFolder.toURI())).forEach(path -> {
