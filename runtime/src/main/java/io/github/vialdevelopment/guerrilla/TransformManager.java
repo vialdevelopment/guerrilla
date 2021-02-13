@@ -138,35 +138,18 @@ public class TransformManager {
     }
 
     /**
-     * invoke this in your Class transformer's transform method
-     *
-     * First it is checked if there's a transformer for this class, if not, just return the original
-     *
-     * Now the class is read with asm, and the transformer class is also fetched in asm to avoid reflection
-     *
-     * All interfaces of the transformer are added to the class
-     *
-     * Then field access modifiers are processed, by looping over the fields,
-     *  checking if they have annotations, check if one of those annotations is the field access transformer,
-     *  then if so reads the annotation into a new field access transformer object.
-     *  Then we check if one of the class field nodes matches the annotation, if so its access is modified
-     *
-     * If there is no annotation on the field, it is added to the class
-     *
-     * Now the method transformers are processed. The methods are looped over, checking their annotations
-     *  if they don't have the transformMethod annotation they are inlined as long as they aren't . Otherwise
-     *  the methods are looped over, checking if they match the annotation, and if so are transformed.
-     *
-     * For insertions, first the init for call back is removed, returns are removed, and callBack.cancel() calls
-     *  are changed into actual returns
-     *
-     * Field references are now fixed, to enable ducks, eg reference to duck will go to the class instead
-     *
-     * Finally, if we have the java arg ASM_DEBUG true, we dump the transformed class to the Canopy/asm folder
-     *   and the transformed class is returned
+     * This is the main class transformer point.<br>
+     * First it is checked if the class is excluded from transformation, and if not,<br>
+     * Then:<br>
+     *  - Parse the class using ASM<br>
+     *  - Run transformers through it<br>
+     *  - Make the transformed class completely public<br>
+     *  - Remaps references from the transformer to the class being transformed<br>
+     *  - Class is written<br>
+     *  - if {@link TransformManager#ASM_DEBUG} then dump the class<br>
      *
      * @param name the class name
-     * @param basicClass the basic class
+     * @param basicClass the class
      * @return the byte array of the transformed class
      */
     public static byte[] transformClass(String name, byte[] basicClass) {
@@ -271,6 +254,8 @@ public class TransformManager {
         }
         return basicClass;
     }
+
+
 
     public static void dumpDebug(File dumpFile, ClassNode classNode) {
         File traceDumpFile = new File(dumpFile.getPath() + ".trace.dump");

@@ -10,7 +10,7 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'io.github.vialdevelopment.guerrilla:guerrilla-gradle:VERSION'
+        classpath 'io.github.vialdevelopment.guerrilla:guerrilla-gradle:0.0.2'
     }   
 }
 
@@ -25,7 +25,7 @@ guerrilla {
 }
 ```
 
-Consult the javadoc of `io.github.vialdevelopment.guerrillagradle.GuerrillaGradleExtension`
+Consult the javadoc of `io.github.vialdevelopment.guerrillagradle.GuerrillaGradleExtension` for more info about these options.
 
 ### Runtime
 ```groovy
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    compile('io.github.vialdevelopment.guerrilla:guerrilla-runtime:VERSION')
+    compile('io.github.vialdevelopment.guerrilla:guerrilla-runtime:0.0.3')
 }
 ```
 
