@@ -287,7 +287,7 @@ public class ASMUtil {
 
         final int[] maxVar = {0};
 
-        insertedIntoMethod.accept(new MethodVisitor(ASM5) {
+        insertedIntoMethod.accept(new MethodVisitor(ASM6) {
             @Override
             public void visitVarInsn(int opcode, int var) {
                 maxVar[0] = Math.max(maxVar[0], var);

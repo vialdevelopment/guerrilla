@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeSet;
 
-import static org.objectweb.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.ASM6;
 
 /**
  * Fixes all the classes to be usable at runtime
@@ -56,7 +56,7 @@ public class FixAllClassesTask extends DefaultTask {
 
                         final boolean[] isMainTransformer = {false};
 
-                        classReader.accept(new ClassVisitor(ASM5) {
+                        classReader.accept(new ClassVisitor(ASM6) {
                             @Override
                             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                                 if (name.startsWith(extension.transformersPackage) || name.equals(extension.transformerRegistrationClass)) {
