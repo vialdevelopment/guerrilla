@@ -10,7 +10,7 @@ public class GuerrillaGradlePluginExtension {
     public String transformerRegistrationClass = "";
     /** Should remap annotations */
     public boolean remap = true;
-    /** Type of mappings */
+    /** Type of mappings {@link io.github.vialdevelopment.guerrillagradle.mapping.manager.MappingManager} */
     public String mappingsType = "";
     /** Mappings */
     public String mappings = "";

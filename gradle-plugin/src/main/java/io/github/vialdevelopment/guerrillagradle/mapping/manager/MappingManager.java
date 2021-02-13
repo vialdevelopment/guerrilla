@@ -9,6 +9,13 @@ import io.github.vialdevelopment.guerrillagradle.mapping.mapper.impl.formats.TSe
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Mappings Types available are:
+ *  - SEARGE
+ *  - TSEARGE
+ *  - FORGE_GRADLE_2
+ *  - FORGE_GRADLE_3
+ */
 public class MappingManager {
 
     private final Map<String, Mapper> mappers = new HashMap<>();

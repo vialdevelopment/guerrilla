@@ -17,14 +17,15 @@ buildscript {
 apply plugin: 'io.github.vialdevelopment.guerrilla-gradle'
 
 guerrilla {
-    mcpVersion = 'stable_39'
+    mappingsType = 'FORGE_GRADLE_2'
+    mappings = 'stable_39'
     transformersPackage = 'my/project/transformers/package'
     transformerRegistrationClass = 'my/project/loading/transformer'
     makePublic = ['make/everything/here/public/.*']
 }
 ```
 
-Consult the javadoc for what each of the guerrilla config options means.
+Consult the javadoc of `io.github.vialdevelopment.guerrillagradle.GuerrillaGradleExtension`
 
 ### Runtime
 ```groovy
