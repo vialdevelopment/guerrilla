@@ -22,6 +22,7 @@ public class Searge extends Mapper {
      */
     @Override
     public void init(Project project, String mappings) {
+        if (loadFromCache(project)) return;
         // read in the mappings
         FileInputStream inputStream;
         try {
@@ -73,6 +74,7 @@ public class Searge extends Mapper {
                     break;
             }
         }
+        writeToCache(project);
     }
 
     @Override

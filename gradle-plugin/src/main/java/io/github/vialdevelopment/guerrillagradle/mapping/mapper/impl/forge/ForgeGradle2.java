@@ -52,8 +52,8 @@ public class ForgeGradle2 extends Mapper {
     }
 
     @Override
-    public void loadFromCache(Project project) {
-        seargeMapper.loadFromCache(project);
+    public boolean loadFromCache(Project project) {
+       return seargeMapper.loadFromCache(project);
     }
 
     @Override

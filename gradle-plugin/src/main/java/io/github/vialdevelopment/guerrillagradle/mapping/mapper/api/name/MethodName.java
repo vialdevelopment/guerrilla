@@ -1,9 +1,11 @@
 package io.github.vialdevelopment.guerrillagradle.mapping.mapper.api.name;
 
+import java.io.Serializable;
+
 /**
  * Holder for method name
  */
-public class MethodName implements Comparable {
+public class MethodName implements Comparable, Serializable {
     /** owner class name */
     public String ownerName;
     /** method name */

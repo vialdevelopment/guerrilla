@@ -26,6 +26,7 @@ public class TSearge extends Mapper {
      */
     @Override
     public void init(Project project, String mappings) {
+        if (loadFromCache(project)) return;
         // read in the mappings
         FileInputStream inputStream;
         try {
@@ -69,6 +70,7 @@ public class TSearge extends Mapper {
                 currentClass = new ClassName(lineSplitSpaces[0]);
             }
         }
+        writeToCache(project);
     }
 
     @Override

@@ -168,8 +168,9 @@ public abstract class Mapper {
     /**
      * Loads our cached mappings
      * @param project gradle project
+     * @return cache loaded
      */
-    public void loadFromCache(Project project) {
+    public boolean loadFromCache(Project project) {
         File mappingsFile = new File(project.getBuildDir() + "/tmp/guerrilla/mappings");
         if (mappingsFile.exists()) {
             try {
@@ -181,7 +182,9 @@ public abstract class Mapper {
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
+            return true;
         }
+        return false;
     }
 
     /**
