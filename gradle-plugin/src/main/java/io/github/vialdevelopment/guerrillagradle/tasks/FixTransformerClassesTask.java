@@ -1,7 +1,10 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePlugin;
 import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePluginExtension;
-import io.github.vialdevelopment.guerrillagradle.Mapper;
+import io.github.vialdevelopment.guerrillagradle.mapping.mapper.api.name.ClassName;
+import io.github.vialdevelopment.guerrillagradle.mapping.mapper.api.name.FieldName;
+import io.github.vialdevelopment.guerrillagradle.mapping.mapper.api.name.MethodName;
 import io.github.vialdevelopment.guerrillagradle.util.ASMAnnotation;
 import io.github.vialdevelopment.guerrillagradle.util.NameUtil;
 import org.gradle.api.DefaultTask;
@@ -32,8 +35,6 @@ public class FixTransformerClassesTask extends DefaultTask {
     public GuerrillaGradlePluginExtension extension;
     /** project build directory */
     public File buildClassesDirectory;
-    /** mapper instance */
-    public Mapper mapper;
     /** classes being transformed */
     public TreeSet<String> alreadyUsedTransformers;
     /** classes transformers are transforming */
@@ -63,7 +64,6 @@ public class FixTransformerClassesTask extends DefaultTask {
                             remapMethodNames(classNode, deobfClassName);
                             remapFieldRedirects(classNode);
                             remapMethodRedirects(classNode);
-                            remapTransformFieldAccess(classNode, deobfClassName);
                         }
                         removeTransformIgnores(classNode);
 
@@ -109,9 +109,9 @@ public class FixTransformerClassesTask extends DefaultTask {
         }
         String className = (String) transformClassAnnotation.get("name");
         if (extension.remap && transformClassAnnotation.get("obfName") == null) {
-            String remapped = mapper.remapClassName(className);
+            ClassName remapped = GuerrillaGradlePlugin.mapper.remapClassName(new ClassName(className.replace('.', '/')));
             if (remapped == null) return className;
-            transformClassAnnotation.put("obfName", remapped);
+            transformClassAnnotation.put("obfName", remapped.className.replace('/', '.'));
             transformClassAnnotation.write();
         }
         return className;
@@ -127,11 +127,10 @@ public class FixTransformerClassesTask extends DefaultTask {
             ASMAnnotation transformMethodAnnotation = ASMAnnotation.getAnnotation(method, "Lio/github/vialdevelopment/guerrilla/annotation/TransformMethod;");
             if (transformMethodAnnotation == null) continue;
             if (transformMethodAnnotation.get("obfName") == null) {
-                String remappedName = mapper.remapMethodName(deObfClassName, (String) transformMethodAnnotation.get("name"), (String) transformMethodAnnotation.get("desc"));
+                MethodName remappedName = GuerrillaGradlePlugin.mapper.remapMethodName(new MethodName(deObfClassName, (String) transformMethodAnnotation.get("name"), (String) transformMethodAnnotation.get("desc")));
                 if (remappedName == null) continue;
-                String[] remapped = remappedName.split(" ");
-                transformMethodAnnotation.put("obfName", remapped[0]);
-                transformMethodAnnotation.put("obfDesc", remapped[1]);
+                transformMethodAnnotation.put("obfName", remappedName.methodName);
+                transformMethodAnnotation.put("obfDesc", remappedName.methodDesc);
 
                 transformMethodAnnotation.write();
             }
@@ -150,10 +149,9 @@ public class FixTransformerClassesTask extends DefaultTask {
             if (!(((ASMAnnotation)insertAnnotation.get("value")).get("ref") != null && ((ASMAnnotation)insertAnnotation.get("value")).get("obfRef") == null))  continue;
 
             String[] fieldRefDis = ((String) ((ASMAnnotation) insertAnnotation.get("value")).get("ref")).split(" ");
-            String remappedFieldRef = mapper.remapFieldAccess(fieldRefDis[1], fieldRefDis[2]);
-            if (remappedFieldRef == null) continue;
-            String rebuiltRemapped = fieldRefDis[0] + " " + remappedFieldRef.substring(0, remappedFieldRef.lastIndexOf("/")) + " " + remappedFieldRef.substring(remappedFieldRef.lastIndexOf("/")+1) + " " + fieldRefDis[3];
-            ((ASMAnnotation)insertAnnotation.get("value")).put("obfRef", rebuiltRemapped);
+            FieldName remappedFieldName = GuerrillaGradlePlugin.mapper.remapFieldName(new FieldName(fieldRefDis[1], fieldRefDis[2], fieldRefDis[3]));
+            if (remappedFieldName == null) continue;
+            ((ASMAnnotation)insertAnnotation.get("value")).put("obfRef", fieldRefDis[0] + " " + remappedFieldName.ownerName + " " + remappedFieldName.fieldName + " " + remappedFieldName.fieldDesc);
             insertAnnotation.write();
         }
     }
@@ -173,31 +171,11 @@ public class FixTransformerClassesTask extends DefaultTask {
             // get the obf name and add it to the annotation
             String methodRef = (String) ((ASMAnnotation)(insertAnnotation.get("value"))).get("ref");
             String[] methodRefDis = methodRef.split(" ");
-            String remappedMethodRef = mapper.remapMethodAccess(methodRefDis[1], methodRefDis[2], methodRefDis[3]);
+            MethodName remappedMethodRef = GuerrillaGradlePlugin.mapper.remapMethodName(new MethodName(methodRefDis[1], methodRefDis[2], methodRefDis[3]));
             // don't continue if there's no mapping for it
             if (remappedMethodRef == null) continue;
-            String rebuiltRemapped = methodRefDis[0] + " " + remappedMethodRef.substring(0, remappedMethodRef.lastIndexOf("/")) + " " + remappedMethodRef.substring(remappedMethodRef.lastIndexOf("/")+1);
-            ((ASMAnnotation)insertAnnotation.get("value")).put("obfRef", rebuiltRemapped);
-
+            ((ASMAnnotation)insertAnnotation.get("value")).put("obfRef", methodRefDis[0] + " " + remappedMethodRef.ownerName + " " + remappedMethodRef.methodName + " " + remappedMethodRef.methodDesc);
             insertAnnotation.write();
-        }
-    }
-
-    /**
-     * Remaps the @TransformFieldAccess
-     * @param classNode class node
-     * @param deobfClassName de-obfuscated class name
-     */
-    private void remapTransformFieldAccess(ClassNode classNode, String deobfClassName) {
-        for (FieldNode field : classNode.fields) {
-            ASMAnnotation transformFieldAccessAnnotation = ASMAnnotation.getAnnotation(field, "Lio/github/vialdevelopment/guerrilla/annotation/TransformFieldAccess;");
-            if (transformFieldAccessAnnotation == null) continue;
-            if (transformFieldAccessAnnotation.get("obfName") != null) continue;
-
-            String obfName = mapper.remapFieldAccess(deobfClassName, (String) transformFieldAccessAnnotation.get("name"));
-            if (obfName == null) continue;
-            transformFieldAccessAnnotation.put("obfName", obfName.substring(obfName.lastIndexOf("/")+1));
-            transformFieldAccessAnnotation.write();
         }
     }
 

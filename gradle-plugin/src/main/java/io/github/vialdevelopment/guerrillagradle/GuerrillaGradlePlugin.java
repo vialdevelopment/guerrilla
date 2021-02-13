@@ -1,5 +1,6 @@
 package io.github.vialdevelopment.guerrillagradle;
 
+import io.github.vialdevelopment.guerrillagradle.mapping.mapper.api.Mapper;
 import io.github.vialdevelopment.guerrillagradle.tasks.*;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -12,35 +13,32 @@ import java.util.Map;
 import java.util.TreeSet;
 
 public class GuerrillaGradlePlugin implements Plugin<Project> {
+
+    public static Mapper mapper = null;
+
     @Override
     public void apply(Project project) {
         GuerrillaGradlePluginExtension extension = project.getExtensions().create("guerrilla", GuerrillaGradlePluginExtension.class);
         JavaCompile javaCompile = (JavaCompile) project.getTasks().getByName("compileJava");
 
-        Mapper mapper = new Mapper();
         TreeSet<String> alreadyDone = new TreeSet<>();
         Map<String, String> transformersTransforming = new HashMap<>();
 
-
-
-        TaskProvider<CreatePublicJarTask> createPublicJarTaskProvider = project.getTasks().register("createPublicJar", CreatePublicJarTask.class);
+        TaskProvider<CreatePUBLICAndTree> createPublicJarTaskProvider = project.getTasks().register("createPublicTree", CreatePUBLICAndTree.class);
         createPublicJarTaskProvider.configure(task -> {
             task.extension = extension;
             task.javaCompile = javaCompile;
-            task.mapper = mapper;
         });
 
-        TaskProvider<InitMapperTask> initMapperTaskProvider = project.getTasks().register("initMapper", InitMapperTask.class);
-        initMapperTaskProvider.configure(task -> {
+        TaskProvider<InitMapperTask> initMapperTaskTaskProvider = project.getTasks().register("initMapper", InitMapperTask.class);
+        initMapperTaskTaskProvider.configure(task -> {
             task.extension = extension;
-            task.mapper = mapper;
         });
 
         TaskProvider<FixTransformerClassesTask> fixTransformerClassesTaskProvider = project.getTasks().register("fixTransformers", FixTransformerClassesTask.class);
         fixTransformerClassesTaskProvider.configure(task -> {
             task.extension = extension;
             task.buildClassesDirectory = javaCompile.getDestinationDir();
-            task.mapper = mapper;
             task.alreadyUsedTransformers = alreadyDone;
             task.transformersTransforming = transformersTransforming;
         });
@@ -52,20 +50,21 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.resourcesDir = new File(project.getBuildDir() + "/resources");
             task.alreadyUsedTransformers = alreadyDone;
             task.transformersTransforming = transformersTransforming;
-            task.mapper = mapper;
         });
 
-        TaskProvider<AddClassesToTransformExcludeTask> addClassesToTransformExcludeTaskProvider = project.getTasks().register("AddRuntimeTransformExclude", AddClassesToTransformExcludeTask.class);
+        TaskProvider<AddClassesToTransformExcludeTask> addClassesToTransformExcludeTaskProvider = project.getTasks().register("addRuntimeTransformExclude", AddClassesToTransformExcludeTask.class);
         addClassesToTransformExcludeTaskProvider.configure(task -> {
             task.extension = extension;
             task.buildClassesDirectory = javaCompile.getDestinationDir();
         });
 
         javaCompile.dependsOn(createPublicJarTaskProvider);
-        javaCompile.finalizedBy(initMapperTaskProvider);
+        javaCompile.dependsOn(initMapperTaskTaskProvider);
         javaCompile.finalizedBy(fixTransformerClassesTaskProvider);
         javaCompile.finalizedBy(fixAllClassesTaskProvider);
         javaCompile.finalizedBy(addClassesToTransformExcludeTaskProvider);
+
+        project.getTasks().findByName("createPublicTree").mustRunAfter(project.getTasks().findByName("initMapper"));
 
         project.afterEvaluate(action -> {
             project.getRepositories().flatDir(repo -> {

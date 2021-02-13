@@ -1,7 +1,7 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePlugin;
 import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePluginExtension;
-import io.github.vialdevelopment.guerrillagradle.Mapper;
 import io.github.vialdevelopment.guerrillagradle.util.NameUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
@@ -25,13 +25,11 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * Creates a PUBLIC jar with everything accessible
  */
-public class CreatePublicJarTask extends DefaultTask {
+public class CreatePUBLICAndTree extends DefaultTask {
     /** config extension */
     public GuerrillaGradlePluginExtension extension;
     /** java compile task */
     public JavaCompile javaCompile;
-    /** mapper */
-    public Mapper mapper;
     /** inheritance map */
     public Map<String, String> inheritanceMap = new HashMap<>();
 
@@ -154,10 +152,10 @@ public class CreatePublicJarTask extends DefaultTask {
                     e.printStackTrace();
                 }
             }
-            mapper.inheritanceMap = inheritanceMap;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+        GuerrillaGradlePlugin.mapper.setInheritanceMap(inheritanceMap);
 
     }
 

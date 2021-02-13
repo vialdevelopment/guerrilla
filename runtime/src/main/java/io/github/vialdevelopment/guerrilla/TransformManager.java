@@ -4,8 +4,8 @@ import io.github.vialdevelopment.guerrilla.annotation.TransformClass;
 import io.github.vialdevelopment.guerrilla.asm.CheckClassAdapterClassNode;
 import io.github.vialdevelopment.guerrilla.transform.ITransform;
 import io.github.vialdevelopment.guerrilla.transform.TransformAddInterfacesEx;
+import io.github.vialdevelopment.guerrilla.transform.TransformInlineFieldsEx;
 import io.github.vialdevelopment.guerrilla.transform.TransformMethodEx;
-import io.github.vialdevelopment.guerrilla.transform.TransformsFieldAccessEx;
 import net.minecraft.launchwrapper.Launch;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -108,8 +108,8 @@ public class TransformManager {
         }
 
         transforms.add(new TransformAddInterfacesEx());
-        transforms.add(new TransformsFieldAccessEx());
         transforms.add(new TransformMethodEx());
+        transforms.add(new TransformInlineFieldsEx());
 
         HAS_INIT = true;
     }

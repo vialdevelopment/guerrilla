@@ -1,7 +1,8 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePlugin;
 import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePluginExtension;
-import io.github.vialdevelopment.guerrillagradle.Mapper;
+import io.github.vialdevelopment.guerrillagradle.mapping.manager.MappingManager;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 
@@ -11,12 +12,11 @@ import org.gradle.api.tasks.TaskAction;
 public class InitMapperTask extends DefaultTask {
     /** config extension */
     public GuerrillaGradlePluginExtension extension;
-    /** Mapper instance */
-    public Mapper mapper;
 
     @TaskAction
     public void process() {
-        mapper.init(getProject(), extension.mcpVersion, extension.mappingsSrgFile);
+        GuerrillaGradlePlugin.mapper = new MappingManager().getMapper(extension.mappingsType);
+        GuerrillaGradlePlugin.mapper.init(getProject(), extension.mappings);
     }
 
 }

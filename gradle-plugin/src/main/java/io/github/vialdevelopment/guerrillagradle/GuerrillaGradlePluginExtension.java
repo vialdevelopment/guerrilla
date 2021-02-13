@@ -10,11 +10,11 @@ public class GuerrillaGradlePluginExtension {
     public String transformerRegistrationClass = "";
     /** Should remap annotations */
     public boolean remap = true;
-    /** MCP mappings version */
-    public String mcpVersion = "";
+    /** Type of mappings */
+    public String mappingsType = "";
+    /** Mappings */
+    public String mappings = "";
     /** Regex list of classes to make public */
     public List<String> makePublic = new ArrayList<>();
-    /** Mappings SRG File if you want to hard code it */
-    public String mappingsSrgFile = "";
 
 }

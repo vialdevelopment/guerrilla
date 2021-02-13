@@ -1,7 +1,8 @@
 package io.github.vialdevelopment.guerrillagradle.tasks;
 
+import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePlugin;
 import io.github.vialdevelopment.guerrillagradle.GuerrillaGradlePluginExtension;
-import io.github.vialdevelopment.guerrillagradle.Mapper;
+import io.github.vialdevelopment.guerrillagradle.mapping.mapper.api.name.ClassName;
 import io.github.vialdevelopment.guerrillagradle.util.NameUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
@@ -36,8 +37,6 @@ public class FixAllClassesTask extends DefaultTask {
     public TreeSet<String> alreadyUsedTransformers;
     /** classes transformers are transforming */
     public Map<String, String> transformersTransforming;
-    /** mapper */
-    public Mapper mapper;
 
     @TaskAction
     public void transform() {
@@ -139,7 +138,7 @@ public class FixAllClassesTask extends DefaultTask {
                 TreeSet<String> remappedPublicsUsed = new TreeSet<>();
                 for (Iterator<String> iterator = publicsUsed.iterator(); iterator.hasNext(); ) {
                     String s = iterator.next();
-                    String remapped = mapper.remapClassName(s);
+                    String remapped = GuerrillaGradlePlugin.mapper.remapClassName(new ClassName(s)).className;
                     remappedPublicsUsed.add(remapped != null ? remapped : s);
                 }
                 String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public-obf.txt";
