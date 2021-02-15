@@ -39,4 +39,4 @@ dependencies {
 ```
 
 ## Finally
-Before you can compile your project, you must run the gradle `setupPublicJar` command.
+Before you can compile your project, you must run the gradle `createPublicTree` command.
