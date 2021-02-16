@@ -65,6 +65,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
         TaskProvider<WritePropertiesTask> writePropertiesTaskTaskProvider = project.getTasks().register("WriteProperties", WritePropertiesTask.class);
         writePropertiesTaskTaskProvider.configure(task -> {
             task.properties = properties;
+            task.extension = extension;
             task.resourcesDir = project.getBuildDir() + "/resources";
         });
 

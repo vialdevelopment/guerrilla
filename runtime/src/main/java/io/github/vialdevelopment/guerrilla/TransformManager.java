@@ -13,6 +13,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.*;
@@ -30,6 +31,8 @@ public class TransformManager {
     public static boolean HAS_INIT = false;
 
     public static boolean OBF = false;
+
+    public static boolean COMPUTE_FRAMES = true;
 
     public static ClassLoader classLoader = TransformManager.class.getClassLoader();
 
@@ -64,6 +67,10 @@ public class TransformManager {
                 URL currentURL = enumeration.nextElement();
                 Properties properties = new Properties();
                 properties.load(currentURL.openStream());
+                // check if compute frames
+                if (COMPUTE_FRAMES) {
+                    if (properties.getProperty("compute-frames").equals("false")) COMPUTE_FRAMES = false;
+                }
                 // load make publics
                 String makePublics = properties.getProperty(OBF ? "make-public-obf" : "make-public-unobf");
                 for (String s : makePublics.split(";")) {
@@ -169,8 +176,14 @@ public class TransformManager {
                 if (transformer.equals("")) continue;
                 externalTransformersNames.add(ASMUtil.toExternalName(transformer));
             }
-
-            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {
+            int flags;
+            if (COMPUTE_FRAMES) {
+                flags = ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS;
+            } else {
+                classNodeBeingTransformed.methods.forEach(methodNode -> methodNode.instructions.forEach(abstractInsnNode -> { if (abstractInsnNode instanceof FrameNode) { methodNode.instructions.remove(abstractInsnNode);}}));
+                flags = 0;
+            }
+            ClassWriter classWriter = new ClassWriter(flags) {
                 // we override this to make it use our class loader instead of what the ClassWriter class was loaded from
                 @Override
                 protected String getCommonSuperClass(String type1, String type2) {

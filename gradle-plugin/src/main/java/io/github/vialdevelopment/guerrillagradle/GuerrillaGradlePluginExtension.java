@@ -16,5 +16,6 @@ public class GuerrillaGradlePluginExtension {
     public String mappings = "";
     /** Regex list of classes to make public */
     public List<String> makePublic = new ArrayList<>();
-
+    /** Should compute frames */
+    public boolean computeFrames = true;
 }
