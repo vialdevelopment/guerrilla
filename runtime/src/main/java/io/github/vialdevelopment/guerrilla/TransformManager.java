@@ -35,16 +35,18 @@ public class TransformManager {
 
     public static boolean ASM_DEBUG = Boolean.parseBoolean(System.getProperty("guerrilla.asmdebug", "false"));
 
-    private static final Map<String, List<String>> transformMap = new HashMap<>();
+    private static Map<String, List<String>> transformMap = new HashMap<>();
 
     private static final Map<String, byte[]> untransformedClassesBytesCache = new HashMap<>();
 
-    private static final List<ITransform> transforms = new ArrayList<>();
+    private static List<ITransform> transforms = new ArrayList<>();
 
-    private static final List<String> transformExclude = new ArrayList<>();
+    private static List<String> transformExclude = new ArrayList<>();
 
     public static void init() {
-        if (HAS_INIT) return;
+        transformMap = new HashMap<>();
+        transformExclude = new ArrayList<>();
+        transforms = new ArrayList<>();
         try {
             Class.forName("net.minecraft.launchwrapper.Launch", false, TransformManager.class.getClassLoader());
             if (Launch.blackboard != null) {
