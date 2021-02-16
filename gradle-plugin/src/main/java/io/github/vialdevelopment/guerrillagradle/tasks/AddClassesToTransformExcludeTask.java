@@ -7,10 +7,10 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.TreeSet;
 
 /**
@@ -21,6 +21,8 @@ public class AddClassesToTransformExcludeTask extends DefaultTask {
     public GuerrillaGradlePluginExtension extension;
     /** project build directory */
     public File buildClassesDirectory;
+    /** guerrilla properties */
+    public Properties properties;
 
     @TaskAction
     public void process() {
@@ -50,22 +52,9 @@ public class AddClassesToTransformExcludeTask extends DefaultTask {
             e.printStackTrace();
         }
 
-        try {
-            // now we write the classes to receive the public and non-final abuse to a file
-            // to be done at runtime
-            // TODO this shouldn't be always in the main submodule
-            File excludeTransformFile = new File(getProject().getBuildDir() + "/resources" + "/main/guerrilla-transform-exclude.txt");
-            excludeTransformFile.getParentFile().mkdirs();
-            FileWriter fileWriter = new FileWriter(excludeTransformFile);
-            for (String s : toExclude) {
-                fileWriter.write(s);
-                fileWriter.write("\n");
-            }
-            fileWriter.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        StringBuilder transformExcludeBuilder = new StringBuilder();
+        toExclude.forEach(s -> { transformExcludeBuilder.append(s); transformExcludeBuilder.append(';'); });
+        properties.setProperty("transform-exclude", transformExcludeBuilder.toString());
     }
 
 }

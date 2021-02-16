@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeSet;
 
 import static org.objectweb.asm.Opcodes.ASM6;
@@ -37,6 +38,8 @@ public class FixAllClassesTask extends DefaultTask {
     public TreeSet<String> alreadyUsedTransformers;
     /** classes transformers are transforming */
     public Map<String, String> transformersTransforming;
+    /** properties */
+    public Properties properties;
 
     @TaskAction
     public void transform() {
@@ -112,47 +115,27 @@ public class FixAllClassesTask extends DefaultTask {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        try {
+
+        StringBuilder makePublicUnobfBuilder = new StringBuilder();
+        publicsUsed.removeIf(alreadyUsedTransformers::contains);
+        publicsUsed.forEach(s -> { makePublicUnobfBuilder.append(s); makePublicUnobfBuilder.append(';'); });
+        properties.setProperty("make-public-unobf", makePublicUnobfBuilder.toString());
+
+        if (extension.remap) {
             // now we write the classes to receive the public and non-final abuse to a file
             // to be done at runtime
-            // FIXME this shouldn't be always in the main submodule
-            String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public-unobf.txt";
-            File makePublicTXTFile = new File(makePublicTXTPath);
-            makePublicTXTFile.getParentFile().mkdirs();
-            FileWriter fileWriter = new FileWriter(makePublicTXTFile);
-            publicsUsed.removeIf(alreadyUsedTransformers::contains);
-            for (String s : publicsUsed) {
-                fileWriter.write(s);
-                fileWriter.write("\n");
+
+            // remap names for obf
+            TreeSet<String> remappedPublicsUsed = new TreeSet<>();
+            for (Iterator<String> iterator = publicsUsed.iterator(); iterator.hasNext(); ) {
+                String s = iterator.next();
+                String remapped = GuerrillaGradlePlugin.mapper.remapClassName(new ClassName(s)).className;
+                remappedPublicsUsed.add(remapped != null ? remapped : s);
             }
-            fileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (extension.remap) {
-            try {
-                // now we write the classes to receive the public and non-final abuse to a file
-                // to be done at runtime
-                // FIXME this shouldn't be always in the main submodule
-                // remap names for obf
-                TreeSet<String> remappedPublicsUsed = new TreeSet<>();
-                for (Iterator<String> iterator = publicsUsed.iterator(); iterator.hasNext(); ) {
-                    String s = iterator.next();
-                    String remapped = GuerrillaGradlePlugin.mapper.remapClassName(new ClassName(s)).className;
-                    remappedPublicsUsed.add(remapped != null ? remapped : s);
-                }
-                String makePublicTXTPath = resourcesDir + "/main/guerrilla-make-public-obf.txt";
-                File makePublicTXTFile = new File(makePublicTXTPath);
-                makePublicTXTFile.getParentFile().mkdirs();
-                FileWriter fileWriter = new FileWriter(makePublicTXTFile);
-                for (String s : remappedPublicsUsed) {
-                    fileWriter.write(s);
-                    fileWriter.write("\n");
-                }
-                fileWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
+            StringBuilder transformExcludeBuilder = new StringBuilder();
+            remappedPublicsUsed.forEach(s -> { transformExcludeBuilder.append(s); transformExcludeBuilder.append(';'); });
+            properties.setProperty("make-public-obf", transformExcludeBuilder.toString());
         }
     }
 

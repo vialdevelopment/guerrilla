@@ -56,53 +56,25 @@ public class TransformManager {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+
+        // read in all guerrilla properties
         try {
-            // read in all guerrilla-make-public.txt files
-            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources(OBF ? "guerrilla-make-public-obf.txt" : "guerrilla-make-public-unobf.txt");
+            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("guerrilla.properties");
             while (enumeration.hasMoreElements()) {
                 URL currentURL = enumeration.nextElement();
-                try {
-                    InputStream inputStream = currentURL.openStream();
-                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                    BufferedReader reader = new BufferedReader(inputStreamReader);
-                    String current;
-
-                    while ((current = reader.readLine()) != null) {
-                        List<String> names = new ArrayList<>();
-                        names.add("");
-                        transformMap.put(current.replace('/', '.'), names);
-                    }
-
-                    reader.close();
-                    inputStreamReader.close();
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                Properties properties = new Properties();
+                properties.load(currentURL.openStream());
+                // load make publics
+                String makePublics = properties.getProperty(OBF ? "make-public-obf" : "make-public-unobf");
+                for (String s : makePublics.split(";")) {
+                    List<String> names = new ArrayList<>();
+                    names.add("");
+                    transformMap.put(s.replace('/', '.'), names);
                 }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // read in all guerrilla-transform-exclude.txt files
-        try {
-            Enumeration<URL> enumeration = TransformManager.class.getClassLoader().getResources("guerrilla-transform-exclude.txt");
-            while (enumeration.hasMoreElements()) {
-                URL currentURL = enumeration.nextElement();
-                try {
-                    InputStream inputStream = currentURL.openStream();
-                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                    BufferedReader reader = new BufferedReader(inputStreamReader);
-                    String current;
-
-                    while ((current = reader.readLine()) != null) {
-                        transformExclude.add(current.replace('/', '.'));
-                    }
-
-                    reader.close();
-                    inputStreamReader.close();
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                // load transform excludes
+                String transformExcludes = properties.getProperty("transform-exclude");
+                for (String s : transformExcludes.split(";")) {
+                    transformExclude.add(s.replace('/', '.'));
                 }
             }
         } catch (IOException e) {

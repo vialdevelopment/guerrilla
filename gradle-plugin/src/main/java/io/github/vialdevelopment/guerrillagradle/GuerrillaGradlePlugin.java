@@ -10,6 +10,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeSet;
 
 public class GuerrillaGradlePlugin implements Plugin<Project> {
@@ -23,6 +24,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
 
         TreeSet<String> alreadyDone = new TreeSet<>();
         Map<String, String> transformersTransforming = new HashMap<>();
+        Properties properties = new Properties();
 
         TaskProvider<CreatePUBLICAndTree> createPublicJarTaskProvider = project.getTasks().register("createPublicTree", CreatePUBLICAndTree.class);
         createPublicJarTaskProvider.configure(task -> {
@@ -50,12 +52,20 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
             task.resourcesDir = new File(project.getBuildDir() + "/resources");
             task.alreadyUsedTransformers = alreadyDone;
             task.transformersTransforming = transformersTransforming;
+            task.properties = properties;
         });
 
         TaskProvider<AddClassesToTransformExcludeTask> addClassesToTransformExcludeTaskProvider = project.getTasks().register("addRuntimeTransformExclude", AddClassesToTransformExcludeTask.class);
         addClassesToTransformExcludeTaskProvider.configure(task -> {
             task.extension = extension;
             task.buildClassesDirectory = javaCompile.getDestinationDir();
+            task.properties = properties;
+        });
+
+        TaskProvider<WritePropertiesTask> writePropertiesTaskTaskProvider = project.getTasks().register("WriteProperties", WritePropertiesTask.class);
+        writePropertiesTaskTaskProvider.configure(task -> {
+            task.properties = properties;
+            task.resourcesDir = project.getBuildDir() + "/resources";
         });
 
         javaCompile.dependsOn(createPublicJarTaskProvider);
@@ -63,6 +73,7 @@ public class GuerrillaGradlePlugin implements Plugin<Project> {
         javaCompile.finalizedBy(fixTransformerClassesTaskProvider);
         javaCompile.finalizedBy(fixAllClassesTaskProvider);
         javaCompile.finalizedBy(addClassesToTransformExcludeTaskProvider);
+        javaCompile.finalizedBy(writePropertiesTaskTaskProvider);
 
         project.getTasks().findByName("createPublicTree").mustRunAfter(project.getTasks().findByName("initMapper"));
 
