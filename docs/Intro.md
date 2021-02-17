@@ -5,7 +5,7 @@ though it doesn't have to be.
 
 ## Why should I use this?
     - It's lightweight
-        - Just 500kb compressed compared to mixin's 1mb compressed
+        - Just 80kb in an env with ASM compressed compared to mixin's 1mb compressed
     - It's simple
         - Need to access a private field? Just use theClassPUBLIC!
         - Want to perform something simple that couldn't possibly be written normally? Just use ASM transformation!
