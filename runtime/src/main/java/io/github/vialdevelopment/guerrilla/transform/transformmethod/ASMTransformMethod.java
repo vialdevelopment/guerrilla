@@ -1,10 +1,11 @@
 package io.github.vialdevelopment.guerrilla.transform.transformmethod;
 
-import com.esotericsoftware.reflectasm.MethodAccess;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
+import io.github.vialdevelopment.guerrilla.asm.ReflectStaticMethodAccess;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +27,10 @@ public class ASMTransformMethod implements ITransformMethod {
     @Override
     public void insert(ClassNode classBeingTransformed, ClassNode transformerClass, MethodNode methodBeingTransformed, MethodNode transformerMethod, ASMAnnotation... asmAnnotation) {
         System.out.println("Invoking method " + asmAnnotation[0].get("name"));
+
         try {
-            // object is null because static
-            MethodAccess.get(Class.forName(transformerClass.name.replace('/', '.'))).invoke(null, transformerMethod.name, methodBeingTransformed, OBF);
-        } catch (ClassNotFoundException e) {
+            ReflectStaticMethodAccess.generate(transformerClass.name, transformerMethod.name, transformerMethod.desc).invoke(methodBeingTransformed, OBF);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
             e.printStackTrace();
         }
 
