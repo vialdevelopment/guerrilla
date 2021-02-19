@@ -2,6 +2,7 @@ package io.github.vialdevelopment.guerrilla.transform.transformmethod;
 
 import io.github.vialdevelopment.guerrilla.ASMUtil;
 import io.github.vialdevelopment.guerrilla.Pattern;
+import io.github.vialdevelopment.guerrilla.TransformManager;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
@@ -30,7 +31,7 @@ public class InlineInitMethod implements ITransformMethod {
     public void end(ClassNode classBeingTransformed, ClassNode transformerClass) {
         if (transformExtends == null) return;
 
-        System.out.println("Inlining <init>s in " + classBeingTransformed.name);
+        TransformManager.LOGGER.verbose("Inlining <init>s in " + classBeingTransformed.name);
 
         InsnList[] insnLists = new InsnList[methods.size()];
         for (int i = 0; i < insnLists.length; i++) {

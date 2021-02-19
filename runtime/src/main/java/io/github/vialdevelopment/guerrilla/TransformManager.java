@@ -28,15 +28,18 @@ import java.util.*;
  */
 public class TransformManager {
 
+    public static boolean ASM_DEBUG = Boolean.parseBoolean(System.getProperty("guerrilla.asmdebug", "false"));
+
+    public static Logger LOGGER = new Logger("Guerrilla", ASM_DEBUG);
+
     public static boolean HAS_INIT = false;
 
     public static boolean OBF = false;
 
     public static boolean COMPUTE_FRAMES = true;
 
-    public static ClassLoader classLoader = TransformManager.class.getClassLoader();
+    public static ClassLoader CLASS_LOADER = TransformManager.class.getClassLoader();
 
-    public static boolean ASM_DEBUG = Boolean.parseBoolean(System.getProperty("guerrilla.asmdebug", "false"));
 
     private static Map<String, List<String>> transformMap = new HashMap<>();
 
@@ -54,7 +57,7 @@ public class TransformManager {
             Class.forName("net.minecraft.launchwrapper.Launch", false, TransformManager.class.getClassLoader());
             if (Launch.blackboard != null) {
                 OBF = !(Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
-                classLoader = Launch.classLoader;
+                CLASS_LOADER = Launch.classLoader;
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -144,7 +147,7 @@ public class TransformManager {
 
         if (transformers == null) return basicClass;
 
-        System.out.println("Transforming " + name);
+        LOGGER.info("Transforming " + name);
 
         ClassNode classNodeBeingTransformed = new ClassNode();
         ClassReader classReader = new ClassReader(basicClass);
@@ -189,13 +192,13 @@ public class TransformManager {
                 protected String getCommonSuperClass(String type1, String type2) {
                     Class<?> class1;
                     try {
-                        class1 = classLoader.loadClass(type1.replace('/', '.'));
+                        class1 = CLASS_LOADER.loadClass(type1.replace('/', '.'));
                     } catch (ClassNotFoundException e) {
                         throw new TypeNotPresentException(type1, e);
                     }
                     Class<?> class2;
                     try {
-                        class2 = classLoader.loadClass(type2.replace('/', '.'));
+                        class2 = CLASS_LOADER.loadClass(type2.replace('/', '.'));
                     } catch (ClassNotFoundException e) {
                         throw new TypeNotPresentException(type2, e);
                     }

@@ -1,5 +1,6 @@
 package io.github.vialdevelopment.guerrilla.transform.transformmethod;
 
+import io.github.vialdevelopment.guerrilla.TransformManager;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
 import io.github.vialdevelopment.guerrilla.asm.ReflectStaticMethodAccess;
 import org.objectweb.asm.tree.ClassNode;
@@ -26,8 +27,7 @@ public class ASMTransformMethod implements ITransformMethod {
 
     @Override
     public void insert(ClassNode classBeingTransformed, ClassNode transformerClass, MethodNode methodBeingTransformed, MethodNode transformerMethod, ASMAnnotation... asmAnnotation) {
-        System.out.println("Invoking method " + asmAnnotation[0].get("name"));
-
+        TransformManager.LOGGER.verbose("Invoking method " + asmAnnotation[0].get("name"));
         try {
             ReflectStaticMethodAccess.generate(transformerClass.name, transformerMethod.name, transformerMethod.desc).invoke(methodBeingTransformed, OBF);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {

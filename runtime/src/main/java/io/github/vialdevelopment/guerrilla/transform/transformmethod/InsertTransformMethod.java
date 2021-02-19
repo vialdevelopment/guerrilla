@@ -1,5 +1,6 @@
 package io.github.vialdevelopment.guerrilla.transform.transformmethod;
 
+import io.github.vialdevelopment.guerrilla.TransformManager;
 import io.github.vialdevelopment.guerrilla.annotation.insert.At;
 import io.github.vialdevelopment.guerrilla.annotation.parse.ASMAnnotation;
 import io.github.vialdevelopment.guerrilla.transform.transformmethod.insert.*;
@@ -38,7 +39,7 @@ public class InsertTransformMethod implements ITransformMethod {
         ASMAnnotation transformMethodAnnotation = asmAnnotation[0];
         ASMAnnotation insertAnnotation = asmAnnotation[1];
 
-        System.out.println("Invoking method " + transformMethodAnnotation.get("name"));
+        TransformManager.LOGGER.verbose("Invoking method " + transformMethodAnnotation.get("name"));
 
         At.loc injectionLocation = At.loc.valueOf(((String[]) ((ASMAnnotation)insertAnnotation.get("value")).get("at"))[1]);
 

@@ -8,7 +8,7 @@ import io.github.vialdevelopment.guerrilla.TransformManager;
  */
 public class ReflectClassLoader extends ClassLoader {
 
-    public static ReflectClassLoader INSTANCE = new ReflectClassLoader(TransformManager.classLoader);
+    public static ReflectClassLoader INSTANCE = new ReflectClassLoader(TransformManager.CLASS_LOADER);
 
     public ReflectClassLoader(ClassLoader classLoader) {
         super(classLoader);
